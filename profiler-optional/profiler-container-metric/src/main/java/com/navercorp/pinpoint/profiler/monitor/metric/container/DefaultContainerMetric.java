@@ -25,15 +25,23 @@ import jdk.internal.platform.Metrics;
 public class DefaultContainerMetric implements ContainerMetric{
 
     private final Metrics metrics;  //replace with MXBean?
+    private long prevUserCpuUsage;
+    private long prevSystemCpuUsage;
 
     public DefaultContainerMetric() {
         metrics = Container.metrics();
+        prevUserCpuUsage = metrics.getCpuUserUsage();
+        prevSystemCpuUsage = metrics.getCpuSystemUsage();
     }
 
     @Override
     public ContainerMetricSnapshot getSnapshot() {
-        final long userCpuUsage = metrics.getCpuUserUsage();
-        final long systemCpuUsage = metrics.getCpuSystemUsage();
+        final long userCpuUsage = metrics.getCpuUserUsage() - prevUserCpuUsage;
+        prevUserCpuUsage = metrics.getCpuUserUsage();
+        final long systemCpuUsage = metrics.getCpuSystemUsage() - prevSystemCpuUsage;
+        prevSystemCpuUsage = metrics.getCpuSystemUsage();
+        //buggy at first collection?
+        //divide by total time? what if multi-core?
         final long memoryUsage = metrics.getMemoryUsage();
 
         return new ContainerMetricSnapshot(userCpuUsage, systemCpuUsage, memoryUsage);

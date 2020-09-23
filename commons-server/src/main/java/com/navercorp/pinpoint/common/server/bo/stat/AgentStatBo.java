@@ -39,6 +39,7 @@ public class AgentStatBo {
     private List<DirectBufferBo> directBufferBos;
     private List<TotalThreadCountBo> totalThreadCountBos;
     private List<LoadedClassBo> loadedClassBos;
+    private List<ContainerBo> containerBos;
 
     public long getStartTimestamp() {
         return startTimestamp;
@@ -141,6 +142,15 @@ public class AgentStatBo {
 
     public void setLoadedClassBos(List<LoadedClassBo> loadedClassBos) { this.loadedClassBos = loadedClassBos; }
 
+    public List<ContainerBo> getContainerBos() {
+        return containerBos;
+    }
+
+    public void setContainerBos(List<ContainerBo> containerBos) {
+        this.containerBos = containerBos;
+    }
+
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("AgentStatBo{");
@@ -157,6 +167,7 @@ public class AgentStatBo {
         sb.append(", directBufferBos=").append(directBufferBos);
         sb.append(", totalThreadCountBos=").append(totalThreadCountBos);
         sb.append(", loadedClassBos=").append(loadedClassBos);
+        sb.append(", containerBos=").append(containerBos);
         sb.append('}');
         return sb.toString();
     }

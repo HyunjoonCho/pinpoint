@@ -42,7 +42,6 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
     private final String agentId;
     private final long agentStartTimestamp;
     private final AgentStatMetricCollector<JvmGcMetricSnapshot> jvmGcMetricCollector;
-    private final AgentStatMetricCollector<ContainerMetricSnapshot> containerMetricCollector;
     private final AgentStatMetricCollector<CpuLoadMetricSnapshot> cpuLoadMetricCollector;
     private final AgentStatMetricCollector<TransactionMetricSnapshot> transactionMetricCollector;
     private final AgentStatMetricCollector<ActiveTraceHistogram> activeTraceMetricCollector;
@@ -53,13 +52,13 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
     private final AgentStatMetricCollector<BufferMetricSnapshot> bufferMetricCollector;
     private final AgentStatMetricCollector<TotalThreadMetricSnapshot> totalThreadMetricCollector;
     private final AgentStatMetricCollector<LoadedClassMetricSnapshot> loadedClassMetricCollector;
+    private final AgentStatMetricCollector<ContainerMetricSnapshot> containerMetricCollector;
 
     @Inject
     public AgentStatCollector(
             @AgentId String agentId,
             @AgentStartTime long agentStartTimestamp,
             AgentStatMetricCollector<JvmGcMetricSnapshot> jvmGcMetricCollector,
-            AgentStatMetricCollector<ContainerMetricSnapshot> containerMetricCollector,
             AgentStatMetricCollector<CpuLoadMetricSnapshot> cpuLoadMetricCollector,
             AgentStatMetricCollector<TransactionMetricSnapshot> transactionMetricCollector,
             AgentStatMetricCollector<ActiveTraceHistogram> activeTraceMetricCollector,
@@ -69,11 +68,11 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
             AgentStatMetricCollector<FileDescriptorMetricSnapshot> fileDescriptorMetricCollector,
             AgentStatMetricCollector<BufferMetricSnapshot> bufferMetricCollector,
             AgentStatMetricCollector<TotalThreadMetricSnapshot> totalThreadMetricCollector,
-            AgentStatMetricCollector<LoadedClassMetricSnapshot> loadedClassMetricCollector) {
+            AgentStatMetricCollector<LoadedClassMetricSnapshot> loadedClassMetricCollector,
+            AgentStatMetricCollector<ContainerMetricSnapshot> containerMetricCollector) {
         this.agentId = Assert.requireNonNull(agentId, "agentId");
         this.agentStartTimestamp = agentStartTimestamp;
         this.jvmGcMetricCollector = Assert.requireNonNull(jvmGcMetricCollector, "jvmGcMetricCollector");
-        this.containerMetricCollector = Assert.requireNonNull(containerMetricCollector, "containerMetricCollector");
         this.cpuLoadMetricCollector = Assert.requireNonNull(cpuLoadMetricCollector, "cpuLoadMetricCollector");
         this.transactionMetricCollector = Assert.requireNonNull(transactionMetricCollector, "transactionMetricCollector");
         this.activeTraceMetricCollector = Assert.requireNonNull(activeTraceMetricCollector, "activeTraceMetricCollector");
@@ -84,6 +83,7 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
         this.bufferMetricCollector = Assert.requireNonNull(bufferMetricCollector, "bufferMetricCollector");
         this.totalThreadMetricCollector = Assert.requireNonNull(totalThreadMetricCollector, "totalThreadMetricCollector");
         this.loadedClassMetricCollector = Assert.requireNonNull(loadedClassMetricCollector, "loadedClassMetricCollector");
+        this.containerMetricCollector = Assert.requireNonNull(containerMetricCollector, "containerMetricCollector");
     }
 
     @Override
@@ -92,7 +92,6 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
         agentStat.setAgentId(agentId);
         agentStat.setStartTimestamp(agentStartTimestamp);
         agentStat.setGc(jvmGcMetricCollector.collect());
-        agentStat.setContainer(containerMetricCollector.collect());
         agentStat.setCpuLoad(cpuLoadMetricCollector.collect());
         agentStat.setTransaction(transactionMetricCollector.collect());
         agentStat.setActiveTrace(activeTraceMetricCollector.collect());
@@ -103,6 +102,7 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
         agentStat.setDirectBuffer(bufferMetricCollector.collect());
         agentStat.setTotalThread(totalThreadMetricCollector.collect());
         agentStat.setLoadedClassCount(loadedClassMetricCollector.collect());
+        agentStat.setContainer(containerMetricCollector.collect());
 
         return agentStat;
     }
@@ -113,7 +113,6 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
         sb.append("agentId='").append(agentId).append('\'');
         sb.append(", agentStartTimestamp=").append(agentStartTimestamp);
         sb.append(", jvmGcMetricCollector=").append(jvmGcMetricCollector);
-        sb.append(", containerMetricCollector=").append(containerMetricCollector);
         sb.append(", cpuLoadMetricCollector=").append(cpuLoadMetricCollector);
         sb.append(", transactionMetricCollector=").append(transactionMetricCollector);
         sb.append(", activeTraceMetricCollector=").append(activeTraceMetricCollector);
@@ -124,6 +123,7 @@ public class AgentStatCollector implements AgentStatMetricCollector<AgentStatMet
         sb.append(", bufferMetricCollector=").append(bufferMetricCollector);
         sb.append(", totalThreadMetricCollector=").append(totalThreadMetricCollector);
         sb.append(", loadedClassMetricCollector=").append(loadedClassMetricCollector);
+        sb.append(", containerMetricCollector=").append(containerMetricCollector);
         sb.append('}');
         return sb.toString();
     }

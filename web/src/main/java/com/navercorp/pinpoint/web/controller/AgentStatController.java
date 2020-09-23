@@ -18,45 +18,8 @@ package com.navercorp.pinpoint.web.controller;
 
 
 
-import com.navercorp.pinpoint.common.server.bo.stat.ActiveTraceBo;
-import com.navercorp.pinpoint.common.server.bo.stat.AgentStatDataPoint;
-import com.navercorp.pinpoint.common.server.bo.stat.CpuLoadBo;
-import com.navercorp.pinpoint.common.server.bo.stat.DataSourceListBo;
-import com.navercorp.pinpoint.common.server.bo.stat.DeadlockThreadCountBo;
-import com.navercorp.pinpoint.common.server.bo.stat.DirectBufferBo;
-import com.navercorp.pinpoint.common.server.bo.stat.FileDescriptorBo;
-import com.navercorp.pinpoint.common.server.bo.stat.JvmGcBo;
-import com.navercorp.pinpoint.common.server.bo.stat.JvmGcDetailedBo;
-import com.navercorp.pinpoint.common.server.bo.stat.ResponseTimeBo;
-import com.navercorp.pinpoint.common.server.bo.stat.TransactionBo;
-import com.navercorp.pinpoint.common.server.bo.stat.TotalThreadCountBo;
-import com.navercorp.pinpoint.common.server.bo.stat.LoadedClassBo;
-import com.navercorp.pinpoint.web.service.stat.ActiveTraceChartService;
-import com.navercorp.pinpoint.web.service.stat.ActiveTraceService;
-import com.navercorp.pinpoint.web.service.stat.AgentStatChartService;
-import com.navercorp.pinpoint.web.service.stat.AgentStatService;
-import com.navercorp.pinpoint.web.service.stat.CpuLoadChartService;
-import com.navercorp.pinpoint.web.service.stat.CpuLoadService;
-import com.navercorp.pinpoint.web.service.stat.DataSourceChartService;
-import com.navercorp.pinpoint.web.service.stat.DataSourceService;
-import com.navercorp.pinpoint.web.service.stat.DeadlockChartService;
-import com.navercorp.pinpoint.web.service.stat.DeadlockService;
-import com.navercorp.pinpoint.web.service.stat.DirectBufferChartService;
-import com.navercorp.pinpoint.web.service.stat.DirectBufferService;
-import com.navercorp.pinpoint.web.service.stat.FileDescriptorChartService;
-import com.navercorp.pinpoint.web.service.stat.FileDescriptorService;
-import com.navercorp.pinpoint.web.service.stat.JvmGcChartService;
-import com.navercorp.pinpoint.web.service.stat.JvmGcDetailedChartService;
-import com.navercorp.pinpoint.web.service.stat.JvmGcDetailedService;
-import com.navercorp.pinpoint.web.service.stat.JvmGcService;
-import com.navercorp.pinpoint.web.service.stat.ResponseTimeChartService;
-import com.navercorp.pinpoint.web.service.stat.ResponseTimeService;
-import com.navercorp.pinpoint.web.service.stat.TransactionChartService;
-import com.navercorp.pinpoint.web.service.stat.TransactionService;
-import com.navercorp.pinpoint.web.service.stat.TotalThreadCountChartService;
-import com.navercorp.pinpoint.web.service.stat.TotalThreadCountService;
-import com.navercorp.pinpoint.web.service.stat.LoadedClassCountChartService;
-import com.navercorp.pinpoint.web.service.stat.LoadedClassCountService;
+import com.navercorp.pinpoint.common.server.bo.stat.*;
+import com.navercorp.pinpoint.web.service.stat.*;
 import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.util.TimeWindowSampler;
 import com.navercorp.pinpoint.web.util.TimeWindowSlotCentricSampler;
@@ -270,6 +233,16 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
         public LoadedClassCountController(LoadedClassCountService loadedClassCountService,
                                           LoadedClassCountChartService loadedClassCountChartService) {
             super(loadedClassCountService, loadedClassCountChartService);
+        }
+    }
+
+    @Controller
+    @RequestMapping("/getAgentStat/containerMetric")
+    public static class ContainerController extends AgentStatController<ContainerBo> {
+        @Autowired
+        public ContainerController(ContainerService containerService,
+                                   ContainerChartService containerChartService) {
+            super(containerService, containerChartService);
         }
     }
 }

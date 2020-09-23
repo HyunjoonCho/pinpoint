@@ -121,12 +121,6 @@ message PJvmGcDetailed {
     double jvmPoolMetaspaceUsed = 8;
 }
 
-message PContainer {
-    int64 userCpuUsage = 1;
-    int64 systemCpuUsage = 2;
-    int64 memoryUsage = 3;
-}
-
 message PCpuLoad {
     double jvmCpuLoad = 1;
     double systemCpuLoad = 2;
@@ -175,4 +169,10 @@ message PTotalThread {
 message PLoadedClass {
     int64 loadedClassCount = 1;
     int64 unloadedClassCount = 2;
+}
+
+message PContainer {
+    int64 userCpuUsage = 1;
+    int64 systemCpuUsage = 2;
+    int64 memoryUsage = 3;
 }

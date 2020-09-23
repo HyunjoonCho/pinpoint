@@ -37,7 +37,6 @@ public class AgentStatMetricSnapshot {
     private long timestamp;
     private long collectInterval;
     private JvmGcMetricSnapshot gc;
-    private ContainerMetricSnapshot container;
     private CpuLoadMetricSnapshot cpuLoad;
     private TransactionMetricSnapshot transaction;
     private ActiveTraceHistogram activeTrace;
@@ -48,6 +47,7 @@ public class AgentStatMetricSnapshot {
     private BufferMetricSnapshot directBuffer;
     private TotalThreadMetricSnapshot totalThreadCount;
     private LoadedClassMetricSnapshot loadedClassCount;
+    private ContainerMetricSnapshot container;
     private String metadata;
 
     public String getAgentId() {
@@ -88,14 +88,6 @@ public class AgentStatMetricSnapshot {
 
     public void setGc(JvmGcMetricSnapshot gc) {
         this.gc = gc;
-    }
-
-    public ContainerMetricSnapshot getContainer() {
-        return container;
-    }
-
-    public void setContainer(ContainerMetricSnapshot container) {
-        this.container = container;
     }
 
     public CpuLoadMetricSnapshot getCpuLoad() {
@@ -170,6 +162,14 @@ public class AgentStatMetricSnapshot {
 
     public void setLoadedClassCount(LoadedClassMetricSnapshot loadedClassCount) { this.loadedClassCount = loadedClassCount; }
 
+    public ContainerMetricSnapshot getContainer() {
+        return container;
+    }
+
+    public void setContainer(ContainerMetricSnapshot container) {
+        this.container = container;
+    }
+
     public String getMetadata() {
         return metadata;
     }
@@ -186,7 +186,6 @@ public class AgentStatMetricSnapshot {
         sb.append(", timestamp=").append(timestamp);
         sb.append(", collectInterval=").append(collectInterval);
         sb.append(", gc=").append(gc);
-        sb.append(", container=").append(container);
         sb.append(", cpuLoad=").append(cpuLoad);
         sb.append(", transaction=").append(transaction);
         sb.append(", activeTrace=").append(activeTrace);
@@ -195,6 +194,7 @@ public class AgentStatMetricSnapshot {
         sb.append(", deadlock=").append(deadlock);
         sb.append(", fileDescriptor=").append(fileDescriptor);
         sb.append(", directBuffer=").append(directBuffer);
+        sb.append(", container=").append(container);
         sb.append(", metadata='").append(metadata).append('\'');
         sb.append('}');
         return sb.toString();

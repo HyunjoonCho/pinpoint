@@ -86,12 +86,6 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
             agentStatBuilder.setGc(jvmGc);
         }
 
-        final ContainerMetricSnapshot containerMetricSnapshot = agentStatMetricSnapshot.getContainer();
-        if (containerMetricSnapshot != null){
-            final PContainer container = convertContainer(containerMetricSnapshot);
-            agentStatBuilder.setContainer(container);
-        }
-
         final CpuLoadMetricSnapshot cpuLoadMetricSnapshot = agentStatMetricSnapshot.getCpuLoad();
         if (cpuLoadMetricSnapshot != null) {
             final PCpuLoad cpuLoad = convertCpuLoad(cpuLoadMetricSnapshot);
@@ -151,6 +145,12 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
             agentStatBuilder.setLoadedClass(loadedClass);
         }
 
+        final ContainerMetricSnapshot containerMetricSnapshot = agentStatMetricSnapshot.getContainer();
+        if (containerMetricSnapshot != null){
+            final PContainer container = convertContainer(containerMetricSnapshot);
+            agentStatBuilder.setContainer(container);
+        }
+
         return agentStatBuilder.build();
     }
 
@@ -180,14 +180,6 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
             jvmGcBuilder.setJvmGcDetailed(jvmGcDetailedBuilder.build());
         }
         return jvmGcBuilder.build();
-    }
-
-    private PContainer convertContainer(ContainerMetricSnapshot containerMetricSnapshot){
-        final PContainer.Builder containerBuilder = PContainer.newBuilder();
-        containerBuilder.setUserCpuUsage(containerMetricSnapshot.getUserCpuUsage());
-        containerBuilder.setSystemCpuUsage(containerMetricSnapshot.getSystemCpuUsage());
-        containerBuilder.setMemoryUsage(containerMetricSnapshot.getMemoryUsage());
-        return containerBuilder.build();
     }
 
     private PCpuLoad convertCpuLoad(CpuLoadMetricSnapshot cpuLoadMetricSnapshot) {
@@ -292,5 +284,13 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
         loadedClassBuilder.setLoadedClassCount(loadedClassCountData.getLoadedClassCount());
         loadedClassBuilder.setUnloadedClassCount(loadedClassCountData.getUnloadedClassCount());
         return loadedClassBuilder.build();
+    }
+
+    private PContainer convertContainer(ContainerMetricSnapshot containerMetricSnapshot){
+        final PContainer.Builder containerBuilder = PContainer.newBuilder();
+        containerBuilder.setUserCpuUsage(containerMetricSnapshot.getUserCpuUsage());
+        containerBuilder.setSystemCpuUsage(containerMetricSnapshot.getSystemCpuUsage());
+        containerBuilder.setMemoryUsage(containerMetricSnapshot.getMemoryUsage());
+        return containerBuilder.build();
     }
 }

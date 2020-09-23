@@ -39,6 +39,7 @@ public class StatisticsDao extends RichOutputFormat<Tuple3<String, JoinStatBo, L
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final long serialVersionUID = 1L;
+    private transient ContainerDao containerDao;
     private transient CpuLoadDao cpuLoadDao;
     private transient MemoryDao memoryDao;
     private transient TransactionDao transactionDao;
@@ -55,6 +56,7 @@ public class StatisticsDao extends RichOutputFormat<Tuple3<String, JoinStatBo, L
     public void configure(Configuration parameters) {
         ExecutionConfig.GlobalJobParameters globalJobParameters = getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         Bootstrap bootstrap = Bootstrap.getInstance(globalJobParameters.toMap());
+        containerDao = bootstrap.getContainerDao();
         cpuLoadDao = bootstrap.getCpuLoadDao();
         memoryDao = bootstrap.getMemoryDao();
         transactionDao = bootstrap.getTransactionDao();
@@ -93,6 +95,7 @@ public class StatisticsDao extends RichOutputFormat<Tuple3<String, JoinStatBo, L
     }
 
     private void insertJoinApplicationStatBo(JoinApplicationStatBo joinApplicationStatBo) {
+        List<JoinStatBo> joinContainerBoList = castJoinStatBoList(joinApplicationStatBo.getJoinContainerBoList());
         List<JoinStatBo> joinCpuLoadBoList = castJoinStatBoList(joinApplicationStatBo.getJoinCpuLoadBoList());
         List<JoinStatBo> joinMemoryBoList = castJoinStatBoList(joinApplicationStatBo.getJoinMemoryBoList());
         List<JoinStatBo> joinTransactionBoList = castJoinStatBoList(joinApplicationStatBo.getJoinTransactionBoList());
@@ -109,6 +112,7 @@ public class StatisticsDao extends RichOutputFormat<Tuple3<String, JoinStatBo, L
         } else {
             final String id = joinApplicationStatBo.getId();
             final long timestamp = joinApplicationStatBo.getTimestamp();
+            containerDao.insert(id, timestamp, joinContainerBoList, StatType.APP_CONTAINER);
             cpuLoadDao.insert(id, timestamp, joinCpuLoadBoList, StatType.APP_CPU_LOAD);
             memoryDao.insert(id, timestamp, joinMemoryBoList, StatType.APP_MEMORY_USED);
             transactionDao.insert(id, timestamp, joinTransactionBoList, StatType.APP_TRANSACTION_COUNT);

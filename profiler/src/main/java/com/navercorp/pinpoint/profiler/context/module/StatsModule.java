@@ -71,9 +71,6 @@ public class StatsModule extends AbstractModule {
         bind(GarbageCollectorMetric.class).toProvider(GarbageCollectorMetricProvider.class).in(Scopes.SINGLETON);
         bind(DetailedGarbageCollectorMetric.class).toProvider(DetailedGarbageCollectorMetricProvider.class).in(Scopes.SINGLETON);
 
-        // container
-        bind(ContainerMetric.class).toProvider(ContainerMetricProvider.class).in(Scopes.SINGLETON);
-
         // cpu
         bind(CpuLoadMetric.class).toProvider(CpuLoadMetricProvider.class).in(Scopes.SINGLETON);
 
@@ -103,5 +100,8 @@ public class StatsModule extends AbstractModule {
 
         // loadedClass
         bind(LoadedClassMetric.class).toProvider(LoadedClassMetricProvider.class).in(Scopes.SINGLETON);
+
+        // container
+        bind(ContainerMetric.class).toProvider(ContainerMetricProvider.class).in(Scopes.SINGLETON);
     }
 }
