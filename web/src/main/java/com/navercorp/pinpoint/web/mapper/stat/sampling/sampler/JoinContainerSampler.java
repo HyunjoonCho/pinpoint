@@ -20,12 +20,14 @@ import com.navercorp.pinpoint.common.server.bo.stat.join.JoinContainerBo;
 import com.navercorp.pinpoint.common.server.bo.stat.join.JoinLongFieldBo;
 import com.navercorp.pinpoint.common.util.CollectionUtils;
 import com.navercorp.pinpoint.web.vo.stat.AggreJoinContainerBo;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * @author Hyunjoon Cho
  */
+@Component
 public class JoinContainerSampler implements ApplicationStatSampler<JoinContainerBo> {
 
     @Override

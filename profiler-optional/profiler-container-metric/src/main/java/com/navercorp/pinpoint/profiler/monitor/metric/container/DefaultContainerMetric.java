@@ -19,6 +19,8 @@ package com.navercorp.pinpoint.profiler.monitor.metric.container;
 import jdk.internal.platform.Container;
 import jdk.internal.platform.Metrics;
 
+import java.util.Objects;
+
 /**
  * @author Hyunjoon Cho
  */
@@ -29,7 +31,7 @@ public class DefaultContainerMetric implements ContainerMetric{
     private long prevSystemCpuUsage;
 
     public DefaultContainerMetric() {
-        metrics = Container.metrics();
+        metrics = Objects.requireNonNull(Container.metrics(), "containerMetrics");
         prevUserCpuUsage = metrics.getCpuUserUsage();
         prevSystemCpuUsage = metrics.getCpuSystemUsage();
     }
