@@ -1,0 +1,49 @@
+{
+  "schemaName": "systemMetric",
+  "dimensionFieldSpecs": [
+    {
+      "name": "applicationName",
+      "dataType": "STRING"
+    },
+    {
+      "name": "metricName",
+      "dataType": "STRING"
+    },
+    {
+      "name": "fieldName",
+      "dataType": "STRING"
+    },
+    {
+      "name": "tagName",
+      "dataType": "STRING",
+      "singleValueField": false,
+      "defaultNullValue": "null"
+    },
+    {
+      "name": "tagValue",
+      "dataType": "STRING",
+      "singleValueField": false,
+      "defaultNullValue": "null"
+    }
+  ],
+  "metricFieldSpecs": [
+    {
+      "name": "fieldLongValue",
+      "dataType": "LONG",
+      "defaultNullValue": -1
+    },
+    {
+      "name": "fieldDoubleValue",
+      "dataType": "DOUBLE",
+      "defaultNullValue": -1.0
+    }
+  ],
+  "dateTimeFieldSpecs": [
+    {
+      "name": "timestampInEpoch",
+      "dataType": "LONG",
+      "format" : "1:MILLISECONDS:EPOCH",
+      "granularity": "1:MILLISECONDS"
+    }
+  ]
+}
