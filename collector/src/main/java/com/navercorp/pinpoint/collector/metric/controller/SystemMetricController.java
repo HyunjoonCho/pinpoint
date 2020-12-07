@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.navercorp.pinpoint.collector.metric.service.SystemMetricService;
 import com.navercorp.pinpoint.collector.metric.vo.SystemMetricJsonDeserializer;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +43,7 @@ import java.util.Objects;
 @Controller
 public class SystemMetricController {
 
-//    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final SystemMetricService systemMetricService;
     private final ObjectMapper objectMapper;
@@ -59,8 +61,9 @@ public class SystemMetricController {
     @ResponseStatus(value = HttpStatus.OK)
     public void getSystemMetricGroupBo(
             @RequestHeader(value = "Application-Name")String applicationName,
+//            @RequestHeader(value = "Hostname")String hostname,
             @RequestBody String body) {
-//        logger.info("body: {}", body);
+//        logger.info("hostname: {}", hostname);
 
         List<SystemMetricBo> systemMetricBos;
         try {

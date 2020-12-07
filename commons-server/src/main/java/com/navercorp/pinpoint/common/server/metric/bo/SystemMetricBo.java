@@ -16,6 +16,7 @@
 
 package com.navercorp.pinpoint.common.server.metric.bo;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public class SystemMetricBo {
     public SystemMetricBo(FieldBo fieldBo, String metricName, List<TagBo> tagBos, long timestamp) {
         this.fieldBo = Objects.requireNonNull(fieldBo, "field");
         this.metricName = Objects.requireNonNull(metricName, "name");
-        this.tagBos = Objects.requireNonNull(tagBos, "tags");
+        this.tagBos = tagBos; // can be empty
         this.timestamp = timestamp;
     }
 
