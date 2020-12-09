@@ -29,8 +29,14 @@ public class PinotKafkaHandler {
     }
 
     public void pushData(List<String> systemMetricStringList) {
+        int count = 0;
+        final int bufferSize = 5;
         for (String systemMetric : systemMetricStringList) {
             kafkaProducer.send(new ProducerRecord<>(topic, systemMetric));
+            count++;
+            if (count % bufferSize == 0) {
+                kafkaProducer.flush();
+            }
 //            logger.info("Kafka Handler: {}", systemMetric);
         }
         kafkaProducer.flush();
