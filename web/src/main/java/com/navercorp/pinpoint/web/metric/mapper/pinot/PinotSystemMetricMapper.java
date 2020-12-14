@@ -1,15 +1,37 @@
-package com.navercorp.pinpoint.web.metric.util.pinot;
+/*
+ * Copyright 2020 NAVER Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.navercorp.pinpoint.web.metric.mapper.pinot;
 
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
+import com.navercorp.pinpoint.web.metric.mapper.SystemMetricMapper;
 import org.apache.pinot.client.ResultSet;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PinotResultSetProcessor {
+/**
+ * @author Hyunjoon Cho
+ */
+@Repository
+public class PinotSystemMetricMapper implements SystemMetricMapper {
 
     public List<String> processStringList(ResultSet resultSet) {
         int numRows = resultSet.getRowCount();
@@ -23,11 +45,11 @@ public class PinotResultSetProcessor {
         return list;
     }
 
-    public List<TagBo> processTagBoList(ResultSet resultSet) {
+    public List<List<TagBo>> processTagBoList(ResultSet resultSet) {
         int numRows = resultSet.getRowCount();
-        List<TagBo> tagBoList = new ArrayList<>();
+        List<List<TagBo>> tagBoList = new ArrayList<>();
         for (int i = 0; i < numRows; i++) {
-            tagBoList.addAll(parseTagBos(resultSet.getString(i, 0), resultSet.getString(i, 1)));
+            tagBoList.add(parseTagBos(resultSet.getString(i, 0), resultSet.getString(i, 1)));
         }
 
         return tagBoList;

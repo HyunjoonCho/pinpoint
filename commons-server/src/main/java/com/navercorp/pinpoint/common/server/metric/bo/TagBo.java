@@ -1,5 +1,3 @@
-package com.navercorp.pinpoint.common.server.metric.bo;
-
 /*
  * Copyright 2020 NAVER Corp.
  *
@@ -15,6 +13,8 @@ package com.navercorp.pinpoint.common.server.metric.bo;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.navercorp.pinpoint.common.server.metric.bo;
 
 import java.util.Objects;
 

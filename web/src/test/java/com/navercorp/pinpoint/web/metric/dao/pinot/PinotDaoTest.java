@@ -4,7 +4,7 @@ import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.util.pinot.PinotQueryStatementWriter;
-import com.navercorp.pinpoint.web.metric.util.pinot.PinotResultSetProcessor;
+import com.navercorp.pinpoint.web.metric.mapper.pinot.PinotSystemMetricMapper;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.junit.Test;
 
@@ -13,8 +13,10 @@ import java.util.List;
 
 public class PinotDaoTest {
     private PinotQueryStatementWriter pinotQueryStatementWriter = new PinotQueryStatementWriter();
-    private PinotResultSetProcessor pinotResultSetProcessor = new PinotResultSetProcessor();
-    private SystemMetricDao systemMetricDao = new PinotSystemMetricDao("10.113.84.89:2191", "PinotCluster", pinotQueryStatementWriter, pinotResultSetProcessor);
+    private PinotSystemMetricMapper pinotSystemMetricMapper = new PinotSystemMetricMapper();
+    private SystemMetricDao systemMetricDao = new PinotSystemMetricDao(pinotQueryStatementWriter, pinotSystemMetricMapper);
+//    private SystemMetricDao systemMetricDao = new PinotSystemMetricDao("10.113.84.89:2191", "PinotCluster", pinotQueryStatementWriter, pinotSystemMetricMapper);
+// instant fix for controller test > how to make String - zkURL, pinotClusterName - configurable?
 
     @Test
     public void getMetricNameTest() {
@@ -30,7 +32,7 @@ public class PinotDaoTest {
 
     @Test
     public void getTagBoListTest() {
-        List<TagBo> tagBoList = systemMetricDao.getTagBoList("hyunjoon.cho", "cpu", "usage_idle");
+        List<List<TagBo>> tagBoList = systemMetricDao.getTagBoList("hyunjoon.cho", "cpu", "usage_idle");
         System.out.println(tagBoList);
     }
 
