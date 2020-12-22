@@ -24,10 +24,43 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-public interface QueryStatementWriter {
-    String queryForMetricNameList(String applicationName);
-    String queryForFieldNameList(String applicationName, String metricName);
-    String queryTimestampForField(String applicationName, String metricName, String fieldName);
-    String queryForTagBoList(String applicationName, String metricName, String fieldName, long timestamp);
-    String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, Range range);
+public abstract class QueryStatementWriter {
+    public abstract String queryForMetricNameList(String applicationName);
+    public abstract String queryForFieldNameList(String applicationName, String metricName);
+    public abstract String queryForTagBoList(String applicationName, String metricName, String fieldName, long timestamp);
+    public abstract String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, Range range);
+
+    protected StringBuilder buildBasicQuery(boolean distinct, String target, String db) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ");
+        if (distinct) {
+            sb.append("DISTINCT ");
+        }
+        sb.append(target);
+        sb.append(" FROM ").append(db);
+        // systemMetric for Pinot
+        // \"system-metric\" for Druid
+        return sb;
+    }
+
+    protected StringBuilder addWhereStatement(StringBuilder query, String key, String value) {
+        return query.append(" WHERE ").append(key).append("='").append(value).append("'");
+    }
+
+    protected StringBuilder addAndStatement(StringBuilder query, String key, String value) {
+        return query.append(" AND ").append(key).append("='").append(value).append("'");
+    }
+
+    protected StringBuilder addAndStatement(StringBuilder query, String key, long value) {
+        return query.append(" AND ").append(key).append("=").append(value);
+    }
+
+//    private StringBuilder addOrStatement(StringBuilder query, String key, String value) {
+//        return query.append(" OR ").append(key).append("='").append(value).append("'");
+//    }
+
+    protected StringBuilder setLimit(StringBuilder query, long limit) {
+        return query.append(" LIMIT ").append(limit);
+    }
+
 }

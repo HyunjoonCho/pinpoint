@@ -48,7 +48,7 @@ public class SystemMetricService {
         );
     }
 
-    public List<List<TagBo>> getTagBoList(String applicationName, String metricName, String fieldName) {
+    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
         return systemMetricDao.getTagBoList(
                 Objects.requireNonNull(applicationName, "applicationName"),
                 Objects.requireNonNull(metricName, "metricName"),

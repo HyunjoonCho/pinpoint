@@ -54,7 +54,7 @@ public class SystemMetricController {
 
     @RequestMapping(value = "/systemMetric/tagBoList")
     @ResponseBody
-    public List<List<TagBo>> getTagBoList(
+    public List<TagBo> getTagBoList(
             @RequestParam(value = "applicationName") String applicationName,
             @RequestParam(value = "metricName") String metricName,
             @RequestParam(value = "fieldName") String fieldName){

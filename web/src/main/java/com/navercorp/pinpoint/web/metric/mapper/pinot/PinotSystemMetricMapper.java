@@ -21,7 +21,7 @@ import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.mapper.SystemMetricMapper;
 import org.apache.pinot.client.ResultSet;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,8 +30,8 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-@Repository
-public class PinotSystemMetricMapper implements SystemMetricMapper {
+//@Component
+public class PinotSystemMetricMapper extends SystemMetricMapper {
 
     public List<String> processStringList(ResultSet resultSet) {
         int numRows = resultSet.getRowCount();
@@ -45,11 +45,15 @@ public class PinotSystemMetricMapper implements SystemMetricMapper {
         return list;
     }
 
-    public List<List<TagBo>> processTagBoList(ResultSet resultSet) {
+    public List<TagBo> processTagBoList(ResultSet resultSet) {
         int numRows = resultSet.getRowCount();
-        List<List<TagBo>> tagBoList = new ArrayList<>();
+        List<TagBo> tagBoList = new ArrayList<>();
         for (int i = 0; i < numRows; i++) {
-            tagBoList.add(parseTagBos(resultSet.getString(i, 0), resultSet.getString(i, 1)));
+            for (TagBo tagBo : parseTagBos(resultSet.getString(i, 0), resultSet.getString(i, 1))) {
+                if (!tagBoList.contains(tagBo)) {
+                    tagBoList.add(tagBo);
+                }
+            }
         }
 
         return tagBoList;
@@ -96,10 +100,6 @@ public class PinotSystemMetricMapper implements SystemMetricMapper {
         }
 
         return tagBos;
-    }
-
-    private String[] parseMultiValueFieldList(String string) {
-        return string.substring(1, string.length() - 1).replace("\"", "").split(",");
     }
 
 }

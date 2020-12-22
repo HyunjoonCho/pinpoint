@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.serializer;
+package com.navercorp.pinpoint.collector.metric.serializer.druid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
@@ -32,13 +33,14 @@ import java.util.List;
  * @author Hyunjoon Cho
  */
 @Component
-public class PinotSystemMetricSerializer {
+public class DruidSystemMetricSerializer implements SystemMetricSerializer {
     private ObjectMapper objectMapper;
 
-    public PinotSystemMetricSerializer() {
+    public DruidSystemMetricSerializer() {
         objectMapper = new ObjectMapper();
     }
 
+    @Override
     public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) {
         if (systemMetricBos.isEmpty()) {
             return null;
@@ -49,19 +51,19 @@ public class PinotSystemMetricSerializer {
             ObjectNode node = objectMapper.createObjectNode();
             node.put("applicationName", applicationName);
             node.put("metricName", systemMetricBo.getMetricName());
-            node.put("timestampInEpoch", systemMetricBo.getTimestamp());
-            ArrayNode tagName = node.putArray("tagName");
-            ArrayNode tagValue = node.putArray("tagValue");
+            node.put("timestamp", systemMetricBo.getTimestamp());
+            ArrayNode tags = node.putArray("tags");
             for (TagBo tagBo : systemMetricBo.getTagBos()) {
-                tagName.add(tagBo.getTagName());
-                tagValue.add(tagBo.getTagValue());
+                tags.add(tagBo.toString());
             }
             FieldBo fieldBo = systemMetricBo.getFieldBo();
             node.put("fieldName", fieldBo.getFieldName());
             if (fieldBo.isLong()) {
                 node.put("fieldLongValue", fieldBo.getFieldLongValue());
+                node.put("fieldDoubleValue", -1);
             }else {
                 node.put("fieldDoubleValue", fieldBo.getFieldDoubleValue());
+                node.put("fieldLongValue", -1);
             }
             try {
                 systemMetricStringList.add(objectMapper.writeValueAsString(node));
@@ -72,6 +74,4 @@ public class PinotSystemMetricSerializer {
 
         return systemMetricStringList;
     }
-
-
 }

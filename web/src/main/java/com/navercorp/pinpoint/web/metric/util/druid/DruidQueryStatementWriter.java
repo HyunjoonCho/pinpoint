@@ -14,65 +14,57 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.web.metric.util.pinot;
+package com.navercorp.pinpoint.web.metric.util.druid;
 
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.util.QueryStatementWriter;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author Hyunjoon Cho
  */
-//@Component
-public class PinotQueryStatementWriter extends QueryStatementWriter {
+@Component
+public class DruidQueryStatementWriter extends QueryStatementWriter {
+    private final SimpleDateFormat format;
+    public DruidQueryStatementWriter() {
+        format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     @Override
     public String queryForMetricNameList(String applicationName) {
-        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", "systemMetric"), "applicationName", applicationName);
+        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", "\"system-metric\""), "applicationName", applicationName);
         return queryStatement.toString();
     }
 
     @Override
     public String queryForFieldNameList(String applicationName, String metricName) {
-        StringBuilder queryStatement = setLimit(
-                addAndStatement(
+        StringBuilder queryStatement = addAndStatement(
                         addWhereStatement(
-                                buildBasicQuery(true, "fieldName", "systemMetric"),
+                                buildBasicQuery(true, "fieldName", "\"system-metric\""),
                                 "applicationName", applicationName),
-                        "metricName", metricName),
-                20);
+                        "metricName", metricName);
 
         return queryStatement.toString();
+
     }
 
-    public String queryTimestampForField(String applicationName, String metricName, String fieldName) {
-        StringBuilder queryStatement = setLimit(
-                addAndStatement(
-                        addAndStatement(
-                                addWhereStatement(
-                                        buildBasicQuery(true, "timestampInEpoch", "systemMetric"),
-                                        "applicationName", applicationName),
-                                "metricName", metricName),
-                        "fieldName", fieldName),
-                1);
-
-        return queryStatement.toString();
-    }
 
     @Override
     public String queryForTagBoList(String applicationName, String metricName, String fieldName, long timestamp) {
         StringBuilder queryStatement = addAndStatement(
-                addAndStatement(
                         addAndStatement(
                                 addWhereStatement(
-                                        buildBasicQuery(false, "tagName, tagValue", "systemMetric"),
+                                        buildBasicQuery(true, "tags", "\"system-metric\""),
                                         "applicationName", applicationName),
                                 "metricName", metricName),
-                        "fieldName", fieldName),
-                "timestampInEpoch", timestamp);
+                        "fieldName", fieldName);
 
         return queryStatement.toString();
     }
@@ -82,30 +74,26 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
         StringBuilder queryStatement = addAndStatement(
                 addAndStatement(
                         addWhereStatement(
-                                buildBasicQuery(false, "*", "systemMetric"),
+                                buildBasicQuery(false, "*", "\"system-metric\""),
                                 "applicationName", applicationName),
                         "metricName", metricName),
                 "fieldName", fieldName);
 
         for (TagBo tagBo : tagBos) {
-            queryStatement = addAndStatement(queryStatement, "tagName", tagBo.getTagName());
-            queryStatement = addAndStatement(queryStatement, "tagValue", tagBo.getTagValue());
+            queryStatement = addContainsStringStatement(queryStatement, "tags", tagBo.toString());
         }
 
         queryStatement = addRangeStatement(queryStatement, range);
 
-        long expectedLimit = (range.getTo() - range.getFrom())/10000 - 1;
-        // by default, telegraf collect every 10sec = 10000ms
-        // make it configurable
-
-        queryStatement = setLimit(queryStatement, expectedLimit);
-
         return queryStatement.toString();
     }
 
-    private StringBuilder addRangeStatement(StringBuilder query, Range range) {
+    private StringBuilder addContainsStringStatement(StringBuilder query, String key, String value) {
+        return query.append(" AND ").append("CONTAINS_STRING(").append(key).append(",'").append(value).append("')");
+    }
 
-        return query.append(" AND ").append("timestampInEpoch").append(" >= ").append(range.getFrom())
-                .append(" AND ").append("timestampInEpoch").append(" <= ").append(range.getTo());
+    private StringBuilder addRangeStatement(StringBuilder query, Range range) {
+        return query.append(" AND ").append("__time").append(" >= '").append(format.format(new Date(range.getFrom()))).append('\'')
+                .append(" AND ").append("__time").append(" <= '").append(format.format(new Date(range.getTo()))).append('\'');
     }
 }

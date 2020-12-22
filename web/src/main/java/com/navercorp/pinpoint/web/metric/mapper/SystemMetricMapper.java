@@ -19,5 +19,8 @@ package com.navercorp.pinpoint.web.metric.mapper;
 /**
  * @author Hyunjoon Cho
  */
-public interface SystemMetricMapper {
+public abstract class SystemMetricMapper {
+    protected String[] parseMultiValueFieldList(String string) {
+        return string.substring(1, string.length() - 1).replace("\"", "").split(",");
+    }
 }

@@ -28,6 +28,6 @@ import java.util.List;
 public interface SystemMetricDao {
     List<String> getMetricNameList(String applicationName);
     List<String> getFieldNameList(String applicationName, String metricName);
-    List<List<TagBo>> getTagBoList(String applicationName, String metricName, String fieldName);
+    List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName);
     List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, Range range);
 }

@@ -14,38 +14,32 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric;
+package com.navercorp.pinpoint.collector.metric.util;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Properties;
 
 /**
  * @author Hyunjoon Cho
  */
-@Component
-public class PinotKafkaHandler {
+public class KafkaHandler {
     private Properties configs;
     private final KafkaProducer<String, String> kafkaProducer;
     private final String topic;
 
-    private final static String PINOT_KAFKA_SERVER = "10.113.84.89:19092";
-    private final static String DRUID_KAFKA_SERVER = "10.113.84.140:19092";
-
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 //    may turn to provider or factory if Kafka is required more widely
 
-    public PinotKafkaHandler() {
-        // read from config or get as argument
-        // for now, use with fixed config
+    public KafkaHandler(String bootstrapServers) {
+        // read from config or get as parameter
+        // for now, get as argument
         configs = new Properties();
-        configs.put("bootstrap.servers", DRUID_KAFKA_SERVER);
+        configs.put("bootstrap.servers", bootstrapServers);
         configs.put("acks", "all");
         configs.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         configs.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -56,16 +50,10 @@ public class PinotKafkaHandler {
     }
 
     public void pushData(List<String> systemMetricStringList) {
-//        int count = 0;
-//        final int bufferSize = 5;
         logger.info("before time {}", System.currentTimeMillis());
         for (String systemMetric : systemMetricStringList) {
+//            logger.info(systemMetric);
             kafkaProducer.send(new ProducerRecord<>(topic, systemMetric));
-//            count++;
-//            if (count % bufferSize == 0) {
-//                kafkaProducer.flush();
-//            }
-//            logger.info("Kafka Handler: {}", systemMetric);
         }
         kafkaProducer.flush();
         logger.info("after time {}", System.currentTimeMillis());
@@ -74,11 +62,7 @@ public class PinotKafkaHandler {
     public void closeProducer() {
         if (kafkaProducer != null){
             kafkaProducer.close();
+            logger.info("Kafka Producer Closed");
         }
-    }
-
-    @PreDestroy
-    public void destroy() {
-        closeProducer();
     }
 }

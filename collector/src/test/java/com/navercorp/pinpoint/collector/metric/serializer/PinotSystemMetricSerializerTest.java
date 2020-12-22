@@ -1,5 +1,6 @@
 package com.navercorp.pinpoint.collector.metric.serializer;
 
+import com.navercorp.pinpoint.collector.metric.serializer.pinot.PinotSystemMetricSerializer;
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;

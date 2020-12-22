@@ -14,39 +14,32 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.dao.pinot;
+package com.navercorp.pinpoint.collector.metric.dao.druid;
 
-import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
-import com.navercorp.pinpoint.collector.metric.serializer.pinot.PinotSystemMetricSerializer;
+import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
+import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author Hyunjoon Cho
  */
-//@Repository
-public class PinotSystemMetricDao implements SystemMetricDao {
-    private final PinotSystemMetricSerializer pinotSystemMetricSerializer;
+@Repository
+public class DruidSystemMetricDao implements SystemMetricDao {
+    private final SystemMetricSerializer systemMetricSerializer;
     private final KafkaHandler kafkaHandler;
 
-    public PinotSystemMetricDao(PinotSystemMetricSerializer pinotSystemMetricSerializer) {
-        this.pinotSystemMetricSerializer = Objects.requireNonNull(pinotSystemMetricSerializer, "pinotSystemMetricSerializer");
-        this.kafkaHandler = new KafkaHandler("10.113.84.89:19092");
+    public DruidSystemMetricDao(SystemMetricSerializer systemMetricSerializer) {
+        this.systemMetricSerializer = Objects.requireNonNull(systemMetricSerializer, "systemMetricSerializer");
+        this.kafkaHandler = new KafkaHandler("10.113.84.140:19092");
     }
 
     @Override
     public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) {
-        List<String> systemMetricStringList = pinotSystemMetricSerializer.serialize(applicationName, systemMetricBos);
-        kafkaHandler.pushData(systemMetricStringList);
-    }
-
-    @PreDestroy
-    public void closeHandler() {
-        kafkaHandler.closeProducer();
+        kafkaHandler.pushData(systemMetricSerializer.serialize(applicationName, systemMetricBos));
     }
 }

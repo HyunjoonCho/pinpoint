@@ -21,6 +21,7 @@ import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.util.QueryStatementWriter;
 import com.navercorp.pinpoint.web.metric.mapper.pinot.PinotSystemMetricMapper;
+import com.navercorp.pinpoint.web.metric.util.pinot.PinotQueryStatementWriter;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.apache.pinot.client.Connection;
 import org.apache.pinot.client.ConnectionFactory;
@@ -37,17 +38,17 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-@Repository
+//@Repository
 public class PinotSystemMetricDao implements SystemMetricDao {
     private final String zkURL;
     private final String pinotClusterName;
     private final Connection pinotConnection;
-    private final QueryStatementWriter queryStatementWriter;
+    private final PinotQueryStatementWriter queryStatementWriter;
     private final PinotSystemMetricMapper pinotSystemMetricMapper;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-    public PinotSystemMetricDao(QueryStatementWriter queryStatementWriter,
+    public PinotSystemMetricDao(PinotQueryStatementWriter queryStatementWriter,
                                 PinotSystemMetricMapper pinotSystemMetricMapper) {
         this.zkURL = "10.113.84.89:2191";
         this.pinotClusterName = "PinotCluster";
@@ -82,11 +83,14 @@ public class PinotSystemMetricDao implements SystemMetricDao {
     }
 
     @Override
-    public List<List<TagBo>> getTagBoList(String applicationName, String metricName, String fieldName) {
+    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
         ResultSet timestampResultSet = queryAndGetResultSet(queryStatementWriter.queryTimestampForField(applicationName, metricName, fieldName));
         long timestamp = timestampResultSet.getLong(0, 0);
         ResultSet resultSet = queryAndGetResultSet(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, timestamp));
         return pinotSystemMetricMapper.processTagBoList(resultSet);
+
+        // 1. pinot does not support distinct -> remove duplicate tagBo
+        // 2. time scanning - not just a point but range
     }
 
     @Override
