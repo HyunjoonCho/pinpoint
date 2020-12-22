@@ -18,8 +18,7 @@
     </mvc:annotation-driven>
 
     <tx:annotation-driven />
-    <context:component-scan base-package="com.navercorp.pinpoint.web.controller, com.navercorp.pinpoint.web.util,
-    com.navercorp.pinpoint.web.metric">
+    <context:component-scan base-package="com.navercorp.pinpoint.web.controller, com.navercorp.pinpoint.web.util">
     </context:component-scan>
 
     <bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">

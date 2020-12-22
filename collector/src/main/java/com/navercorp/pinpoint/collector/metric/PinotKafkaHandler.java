@@ -35,6 +35,9 @@ public class PinotKafkaHandler {
     private final KafkaProducer<String, String> kafkaProducer;
     private final String topic;
 
+    private final static String PINOT_KAFKA_SERVER = "10.113.84.89:19092";
+    private final static String DRUID_KAFKA_SERVER = "10.113.84.140:19092";
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 //    may turn to provider or factory if Kafka is required more widely
 
@@ -42,18 +45,20 @@ public class PinotKafkaHandler {
         // read from config or get as argument
         // for now, use with fixed config
         configs = new Properties();
-        configs.put("bootstrap.servers", "10.113.84.89:19092");
+        configs.put("bootstrap.servers", DRUID_KAFKA_SERVER);
         configs.put("acks", "all");
         configs.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         configs.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+//        logger.info("HERE!!!!");
         kafkaProducer = new KafkaProducer<>(configs);
+//        logger.info("Producer Created!!!");
         topic = "system-metric-topic";
     }
 
     public void pushData(List<String> systemMetricStringList) {
 //        int count = 0;
 //        final int bufferSize = 5;
-//        logger.info("before time {}", System.currentTimeMillis());
+        logger.info("before time {}", System.currentTimeMillis());
         for (String systemMetric : systemMetricStringList) {
             kafkaProducer.send(new ProducerRecord<>(topic, systemMetric));
 //            count++;
@@ -63,7 +68,7 @@ public class PinotKafkaHandler {
 //            logger.info("Kafka Handler: {}", systemMetric);
         }
         kafkaProducer.flush();
-//        logger.info("after time {}", System.currentTimeMillis());
+        logger.info("after time {}", System.currentTimeMillis());
     }
 
     public void closeProducer() {

@@ -2,24 +2,82 @@ package com.navercorp.pinpoint.collector.metric;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.Consumed;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
 import org.junit.Test;
 
 import java.util.Date;
 import java.util.Properties;
+import java.util.Random;
 
 public class PinotKafkaTest {
+    Random random = new Random();
+
     @Test
-    public void pinotKafkaTest() {
+    public void kafkaFixedMetricTest() {
+        KafkaProducer<String, String> producer = createProducer();
+
+        long time = 0;
+        for (int i = 0 ; i < 100000 ; i++) {
+            String systemMetric = "{\"applicationName\":\"hyunjoon\", \"tagName\":[\"host\", \"currentTime\"], \"tagValue\":[\"localhost\", \"" + new Date().toString() + "\"], \"timestampInEpoch\":" + time + "}";
+            producer.send(new ProducerRecord<>("test-topic", systemMetric));
+            time += 1000;
+        }
+        // skipped fieldValue to see other parts work or not
+
+        producer.flush();
+        producer.close();
+    }
+
+    @Test
+    public void kafkaRandomMetricTest() {
+
+        KafkaProducer<String, String> producer = createProducer();
+
+        long time = 0;
+        int num;
+        StringBuilder sb;
+
+        for (int i = 0 ; i < 100000 ; i++) {
+            sb = new StringBuilder();
+            sb.append("{\"applicationName\":\"hyunjoon\", ");
+            sb.append("\"metricName\":").append("\"metric").append(getRandomAlphabet()).append("\", ");
+            sb.append("\"fieldName\":").append("\"field").append(getRandomAlphabet()).append("\", ");
+
+            sb.append("\"tagName\":[");
+            num = random.nextInt(10);
+            for (int j = 0; j < num; j++) {
+                sb.append("\"name").append(getRandomAlphabet()).append("\", ");
+            }
+            sb.append("\"currentTime\"], ");
+
+            sb.append("\"tagValue\":[");
+            for (int j = 0; j < num; j++) {
+                sb.append("\"value").append(getRandomAlphabet()).append("\", ");
+            }
+            sb.append("\"").append(new Date().toString()).append("\"], ");
+
+            sb.append("\"timestamp\":" + time +"}");
+
+            producer.send(new ProducerRecord<>("random-test-topic", sb.toString()));
+            time += 1000;
+        }
+        // skipped fieldValue to see other parts work or not
+
+        producer.flush();
+        producer.close();
+    }
+
+    private char getRandomAlphabet() {
+        if(random.nextBoolean()){
+            return (char) (65 + random.nextInt(26));
+        } else {
+            return (char) (97 + random.nextInt(26));
+        }
+    }
+
+    private KafkaProducer<String, String> createProducer() {
         // servers -> localhost to test on local environment
         Properties configs = new Properties();
-        configs.put("bootstrap.servers", "10.113.84.89:19092");
+        configs.put("bootstrap.servers", "10.113.84.140:19092");
         configs.put("acks", "all");
         configs.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         configs.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -27,53 +85,6 @@ public class PinotKafkaTest {
 //        KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
 //        String transcript = "{\"studentID\":207, \"firstName\":\"Hyunjoon\", \"lastName\":\"Cho\", \"gender\":\"Male\", \"subject\":\"Art\", \"score\":3.4, \"timestampInEpoch\":1571900400000}";
 //        producer.send(new ProducerRecord<>("transcript-topic", transcript));
-        KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
-//        for (int i = 0 ; i < 100 ; i++) {
-            String systemMetric = "{\"applicationName\":\"hyunjoon\", \"metricName\":\"cpu\", \"fieldName\":\"user_usage\", \"tagName\":[\"host\",\"cpu\", \"currentTime\"], \"tagValue\":[\"cpu1\",\"localhost\", \"" + new Date().toString() + "\"], \"timestampInEpoch\":1571900400000}";
-            producer.send(new ProducerRecord<>("system-metric-topic", systemMetric));
-//        }
-        // skipped fieldValue to see other parts work or not
-
-        producer.flush();
-        producer.close();
+        return new KafkaProducer<>(configs);
     }
-//
-//    @Test
-//    public void pinotKafkaStreamsTest() {
-//        final String bootstrapServers = "10.113.84.89:19092";
-//        final String inputTopic = "system-metric-streams";
-//        final String outputTopic = "system-metric-topic";
-//
-//        final Properties streamsConfiguration = getStreamsConfiguration(bootstrapServers);
-//        final StreamsBuilder builder = new StreamsBuilder();
-//        KStream<String, String> inputStream = builder.stream(inputTopic, Consumed.with(Serdes.String(), Serdes.String()));
-//        inputStream.to(outputTopic, Produced.with(Serdes.String(), Serdes.String()));
-//
-//        final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
-//        streams.cleanUp();
-//        streams.start();
-//    }
-//
-//    private Properties getStreamsConfiguration(final String bootstrapServers) {
-//        final Properties streamsConfiguration = new Properties();
-//        // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
-//        // against which the application is run.
-//        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "system-metric-test");
-//        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "system-metric-test-client");
-//        // Where to find Kafka broker(s).
-//        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-//        // Specify default (de)serializers for record keys and for record values.
-//        streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-//        streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-//        // Records should be flushed every 10 seconds. This is less than the default
-//        // in order to keep this example interactive.
-//        streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 10 * 1000);
-//        // For illustrative purposes we disable record caches.
-//        streamsConfiguration.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
-//        return streamsConfiguration;
-//    }
-
 }
-
-/*
- */

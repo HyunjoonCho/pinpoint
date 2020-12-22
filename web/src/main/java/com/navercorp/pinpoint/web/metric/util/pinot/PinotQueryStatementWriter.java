@@ -59,6 +59,7 @@ public class PinotQueryStatementWriter implements QueryStatementWriter {
                             "metricName", metricName),
                 "fieldName", fieldName),
                 1);
+        // SELECT timestamp from sys-metric where appName, metricName, fieldName limit 1
 
         return queryStatement.toString();
     }

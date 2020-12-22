@@ -64,7 +64,7 @@ public class SystemMetricController {
 //            @RequestHeader(value = "Hostname")String hostname,
             @RequestBody String body) {
 //        logger.info("hostname: {}", hostname);
-//        logger.info("controller time {}", System.currentTimeMillis());
+        logger.info("controller time {}", System.currentTimeMillis());
 
         List<SystemMetricBo> systemMetricBos;
         try {
