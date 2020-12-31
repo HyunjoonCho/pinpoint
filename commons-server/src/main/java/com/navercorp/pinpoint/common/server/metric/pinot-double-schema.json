@@ -1,5 +1,5 @@
 {
-  "schemaName": "systemMetric",
+  "schemaName": "systemMetricDouble",
   "dimensionFieldSpecs": [
     {
       "name": "applicationName",
@@ -28,13 +28,8 @@
   ],
   "metricFieldSpecs": [
     {
-      "name": "fieldLongValue",
-      "dataType": "LONG",
-      "defaultNullValue": -1
-    },
-    {
-      "name": "fieldDoubleValue",
-      "dataType": "DOUBLE",
+      "name": "fieldValue",
+      "dataType": "Double",
       "defaultNullValue": -1.0
     }
   ],

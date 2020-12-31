@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-@Component
+//@Component
 public class DruidSystemMetricSerializer implements SystemMetricSerializer {
     private ObjectMapper objectMapper;
 

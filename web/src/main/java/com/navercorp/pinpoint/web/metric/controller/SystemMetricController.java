@@ -19,6 +19,11 @@ package com.navercorp.pinpoint.web.metric.controller;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.service.SystemMetricService;
+import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricChart;
+import com.navercorp.pinpoint.web.util.TimeWindow;
+import com.navercorp.pinpoint.web.util.TimeWindowSampler;
+import com.navercorp.pinpoint.web.util.TimeWindowSlotCentricSampler;
+import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,6 +36,7 @@ import java.util.Objects;
  * @author Hyunjoon Cho
  */
 @Controller
+@RequestMapping(value = "/systemMetric")
 public class SystemMetricController {
     private final SystemMetricService systemMetricService;
 
@@ -38,13 +44,13 @@ public class SystemMetricController {
         this.systemMetricService = Objects.requireNonNull(systemMetricService, "systemMetricService");
     }
 
-    @RequestMapping(value = "/systemMetric/metricNameList")
+    @RequestMapping(value = "/metricNameList")
     @ResponseBody
     public List<String> getMetricNameList(@RequestParam(value = "applicationName") String applicationName) {
         return systemMetricService.getMetricNameList(applicationName);
     }
 
-    @RequestMapping(value = "/systemMetric/fieldNameList")
+    @RequestMapping(value = "/fieldNameList")
     @ResponseBody
     public List<String> getFieldNameList(
             @RequestParam(value = "applicationName") String applicationName,
@@ -52,7 +58,7 @@ public class SystemMetricController {
         return systemMetricService.getFieldNameList(applicationName, metricName);
     }
 
-    @RequestMapping(value = "/systemMetric/tagBoList")
+    @RequestMapping(value = "/tagBoList")
     @ResponseBody
     public List<TagBo> getTagBoList(
             @RequestParam(value = "applicationName") String applicationName,
@@ -61,7 +67,7 @@ public class SystemMetricController {
         return systemMetricService.getTagBoList(applicationName, metricName, fieldName);
     }
 
-    @RequestMapping(value = "/systemMetric/systemMetricBoList")
+    @RequestMapping(value = "/systemMetricBoList")
     @ResponseBody
     public List<SystemMetricBo> getSystemMetricBoList(
             @RequestParam(value = "applicationName") String applicationName,
@@ -70,18 +76,21 @@ public class SystemMetricController {
             @RequestParam(value = "tags") List<String> tags,
             @RequestParam(value = "from") long from,
             @RequestParam(value = "to") long to){
-        return systemMetricService.getSystemMetricBoList(applicationName, metricName, fieldName, tags, from, to);
+        return systemMetricService.getSystemMetricBoList(applicationName, metricName, fieldName, tags, Range.newRange(from, to));
     }
 
-/*
     @RequestMapping(value = "/systemMetric/systemMetricChart")
     @ResponseBody
     public SystemMetricChart getSystemMetricChart(
             @RequestParam(value = "applicationName") String applicationName,
             @RequestParam(value = "metricName") String metricName,
             @RequestParam(value = "fieldName") String fieldName,
-            @RequestParam(value = "tags") List<String> tags){
-
+            @RequestParam(value = "tags") List<String> tags,
+            @RequestParam(value = "from") long from,
+            @RequestParam(value = "to") long to){
+        TimeWindowSampler sampler = new TimeWindowSlotCentricSampler();
+        // above sampler?
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
+        return systemMetricService.getSystemMetricChart(applicationName, metricName, fieldName, tags, timeWindow);
     }
-*/
 }

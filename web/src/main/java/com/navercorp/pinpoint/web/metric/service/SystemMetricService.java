@@ -19,6 +19,8 @@ package com.navercorp.pinpoint.web.metric.service;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
+import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricChart;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Service;
 
@@ -56,14 +58,27 @@ public class SystemMetricService {
         );
     }
 
-    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<String> tags, long from, long to){
+    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<String> tags, Range range){
         return systemMetricDao.getSystemMetricBoList(
                 Objects.requireNonNull(applicationName, "applicationName"),
                 Objects.requireNonNull(metricName, "metricName"),
                 Objects.requireNonNull(fieldName, "fieldName"),
                 parseTags(Objects.requireNonNull(tags, "tags")),
-                Range.newRange(from, to)
+                range
         );
+    }
+
+    public SystemMetricChart getSystemMetricChart(String applicationName, String metricName, String fieldName, List<String> tags, TimeWindow timeWindow) {
+        List<SystemMetricBo> systemMetricBoList = systemMetricDao.getSystemMetricBoList(
+                Objects.requireNonNull(applicationName, "applicationName"),
+                Objects.requireNonNull(metricName, "metricName"),
+                Objects.requireNonNull(fieldName, "fieldName"),
+                parseTags(Objects.requireNonNull(tags, "tags")),
+                timeWindow.getWindowRange()
+        );
+        // what if systemMetricBoList is empty?
+
+        return new SystemMetricChart(timeWindow, systemMetricBoList);
     }
 
     public List<TagBo> parseTags(List<String> tags) {

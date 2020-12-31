@@ -22,6 +22,8 @@ import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.mapper.druid.DruidSystemMetricMapper;
 import com.navercorp.pinpoint.web.metric.util.druid.DruidQueryStatementWriter;
 import com.navercorp.pinpoint.web.vo.Range;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PreDestroy;
@@ -39,6 +41,7 @@ import java.util.Properties;
  */
 @Repository
 public class DruidSystemMetricDao implements SystemMetricDao {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String druidUrl;
     private final Properties properties;
     private Connection connection;
@@ -50,13 +53,13 @@ public class DruidSystemMetricDao implements SystemMetricDao {
         this.queryStatementWriter = Objects.requireNonNull(queryStatementWriter, "queryStatementWriter");
         this.systemMetricMapper = Objects.requireNonNull(systemMetricMapper, "systemMetricMapper");
 
-        this.druidUrl = "jdbc:avatica:remote:url=http://10.113.84.140:8082/druid/v2/sql/avatica/";
+        this.druidUrl = "jdbc:avatica:remote:url=http://IP:PORT/druid/v2/sql/avatica/";
         this.properties = new Properties();
         properties.put("useApproximateTopN", "false");
         try {
             this.connection = DriverManager.getConnection(druidUrl, properties);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Druid Connection Failed {}", e.getMessage());
         }
     }
 
@@ -67,7 +70,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
             final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForMetricNameList(applicationName));
             return systemMetricMapper.processStringList(resultSet);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Getting Metric Name Failed {}", e.getMessage());
         }
         return null;
     }
@@ -79,7 +82,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
             final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForFieldNameList(applicationName, metricName));
             return systemMetricMapper.processStringList(resultSet);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Getting Field Name Failed {}", e.getMessage());
         }
         return null;
     }
@@ -91,7 +94,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
             final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, 0));
             return systemMetricMapper.processTagBoList(resultSet);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Getting Tags Failed {}", e.getMessage());
         }
         return null;
     }
@@ -103,7 +106,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
             final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, range));
             return systemMetricMapper.processSystemMetricBoList(resultSet);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Getting System Metric Failed {}", e.getMessage());
         }
         return null;
     }
@@ -113,7 +116,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
         try {
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Closing Druid Connection Failed {}", e.getMessage());
         }
     }
 }

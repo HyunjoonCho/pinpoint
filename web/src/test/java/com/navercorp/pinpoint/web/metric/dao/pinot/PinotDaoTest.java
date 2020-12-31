@@ -34,7 +34,7 @@ public class PinotDaoTest {
     private PinotQueryStatementWriter pinotQueryStatementWriter = new PinotQueryStatementWriter();
     private PinotSystemMetricMapper pinotSystemMetricMapper = new PinotSystemMetricMapper();
     private SystemMetricDao systemMetricDao = new PinotSystemMetricDao(pinotQueryStatementWriter, pinotSystemMetricMapper);
-//    private SystemMetricDao systemMetricDao = new PinotSystemMetricDao("10.113.84.89:2191", "PinotCluster", pinotQueryStatementWriter, pinotSystemMetricMapper);
+//    private SystemMetricDao systemMetricDao = new PinotSystemMetricDao("IP:PORT", "PinotCluster", pinotQueryStatementWriter, pinotSystemMetricMapper);
 // instant fix for controller test > how to make String - zkURL, pinotClusterName - configurable?
 
     @Test

@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.util;
-
-import java.util.List;
+package com.navercorp.pinpoint.web.metric.mapper.sampler;
 
 /**
  * @author Hyunjoon Cho
  */
-public interface KafkaHandler {
-    void pushData(List<String> systemMetricStringList);
+public class SystemMetricSampler {
 }

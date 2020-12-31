@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-//@Component
+@Component
 public class PinotSystemMetricSerializer implements SystemMetricSerializer {
     private ObjectMapper objectMapper;
 
@@ -60,12 +60,16 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
             FieldBo fieldBo = systemMetricBo.getFieldBo();
             node.put("fieldName", fieldBo.getFieldName());
             if (fieldBo.isLong()) {
-                node.put("fieldLongValue", fieldBo.getFieldLongValue());
+                node.put("fieldValue", fieldBo.getFieldLongValue());
             }else {
-                node.put("fieldDoubleValue", fieldBo.getFieldDoubleValue());
+                node.put("fieldValue", fieldBo.getFieldDoubleValue());
             }
             try {
-                systemMetricStringList.add(objectMapper.writeValueAsString(node));
+                if(fieldBo.isLong()) {
+                    systemMetricStringList.add("L".concat(objectMapper.writeValueAsString(node)));
+                } else {
+                    systemMetricStringList.add(objectMapper.writeValueAsString(node));
+                }
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

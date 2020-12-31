@@ -59,23 +59,18 @@ public class SystemMetricController {
 
     @RequestMapping(value = "/telegraf", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void getSystemMetricGroupBo(
+    public void saveSystemMetric(
             @RequestHeader(value = "Application-Name")String applicationName,
-//            @RequestHeader(value = "Hostname")String hostname,
             @RequestBody String body) {
-//        logger.info("hostname: {}", hostname);
-        logger.info("controller time {}", System.currentTimeMillis());
+//        logger.info("controller time {}", System.currentTimeMillis());
 
         List<SystemMetricBo> systemMetricBos;
         try {
             JsonNode jsonNode = objectMapper.readTree(body).get("metrics");
             systemMetricBos = Arrays.asList(objectMapper.readValue(jsonNode.toString(), SystemMetricBo[].class));
-//            for (SystemMetricBo metric : systemMetricBos) {
-//                logger.info("metric: {}", metric);
-//            }
-        } catch(IOException e) {
+        } catch (IOException e) {
             systemMetricBos = null;
-            e.printStackTrace();
+            logger.warn("System Metric Deserialization Failed: {}", e.getMessage());
         }
 
         systemMetricService.insert(applicationName, systemMetricBos);

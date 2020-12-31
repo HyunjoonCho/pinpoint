@@ -28,14 +28,15 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-@Repository
+//@Repository
 public class DruidSystemMetricDao implements SystemMetricDao {
     private final SystemMetricSerializer systemMetricSerializer;
     private final KafkaHandler kafkaHandler;
 
-    public DruidSystemMetricDao(SystemMetricSerializer systemMetricSerializer) {
+    public DruidSystemMetricDao(SystemMetricSerializer systemMetricSerializer,
+                                KafkaHandler kafkaHandler) {
         this.systemMetricSerializer = Objects.requireNonNull(systemMetricSerializer, "systemMetricSerializer");
-        this.kafkaHandler = new KafkaHandler("10.113.84.140:19092");
+        this.kafkaHandler = Objects.requireNonNull(kafkaHandler, "kafkaHandler");
     }
 
     @Override
