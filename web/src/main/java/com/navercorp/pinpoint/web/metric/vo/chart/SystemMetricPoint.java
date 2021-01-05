@@ -27,7 +27,6 @@ public class SystemMetricPoint<Y extends Number> implements Point {
 
     private final long xVal;
     private final Y yVal;
-    // min, max, avg, sum Y?
 
     public SystemMetricPoint(long xVal, Y yVal) {
         this.xVal = xVal;

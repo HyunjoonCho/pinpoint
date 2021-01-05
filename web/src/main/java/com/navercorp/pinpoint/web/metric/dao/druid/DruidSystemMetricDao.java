@@ -21,6 +21,8 @@ import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.mapper.druid.DruidSystemMetricMapper;
 import com.navercorp.pinpoint.web.metric.util.druid.DruidQueryStatementWriter;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ import java.util.Properties;
 /**
  * @author Hyunjoon Cho
  */
-@Repository
+//@Repository
 public class DruidSystemMetricDao implements SystemMetricDao {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String druidUrl;
@@ -67,7 +69,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
     public List<String> getMetricNameList(String applicationName) {
         try {
             final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForMetricNameList(applicationName));
+            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForMetricNameList(applicationName, true));
             return systemMetricMapper.processStringList(resultSet);
         } catch (SQLException e) {
             logger.warn("Getting Metric Name Failed {}", e.getMessage());
@@ -79,7 +81,7 @@ public class DruidSystemMetricDao implements SystemMetricDao {
     public List<String> getFieldNameList(String applicationName, String metricName) {
         try {
             final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForFieldNameList(applicationName, metricName));
+            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForFieldNameList(applicationName, metricName, true));
             return systemMetricMapper.processStringList(resultSet);
         } catch (SQLException e) {
             logger.warn("Getting Field Name Failed {}", e.getMessage());
@@ -88,10 +90,10 @@ public class DruidSystemMetricDao implements SystemMetricDao {
     }
 
     @Override
-    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
+    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName, boolean isLong) {
         try {
             final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, 0));
+            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, true, 0));
             return systemMetricMapper.processTagBoList(resultSet);
         } catch (SQLException e) {
             logger.warn("Getting Tags Failed {}", e.getMessage());
@@ -100,14 +102,19 @@ public class DruidSystemMetricDao implements SystemMetricDao {
     }
 
     @Override
-    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, Range range) {
+    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, Range range) {
         try {
             final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, range));
+            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, true, range));
             return systemMetricMapper.processSystemMetricBoList(resultSet);
         } catch (SQLException e) {
             logger.warn("Getting System Metric Failed {}", e.getMessage());
         }
+        return null;
+    }
+
+    @Override
+    public List<SampledSystemMetric> getSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, TimeWindow timeWindow) {
         return null;
     }
 

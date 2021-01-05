@@ -35,7 +35,7 @@ import java.util.TimeZone;
 /**
  * @author Hyunjoon Cho
  */
-@Component
+//@Component
 public class DruidSystemMetricMapper extends SystemMetricMapper {
 //    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SimpleDateFormat format;

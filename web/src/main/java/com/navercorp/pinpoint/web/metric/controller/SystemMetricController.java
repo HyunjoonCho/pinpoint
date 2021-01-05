@@ -22,7 +22,6 @@ import com.navercorp.pinpoint.web.metric.service.SystemMetricService;
 import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricChart;
 import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.util.TimeWindowSampler;
-import com.navercorp.pinpoint.web.util.TimeWindowSlotCentricSampler;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,50 +45,57 @@ public class SystemMetricController {
 
     @RequestMapping(value = "/metricNameList")
     @ResponseBody
-    public List<String> getMetricNameList(@RequestParam(value = "applicationName") String applicationName) {
+    public List<String> getMetricNameList(@RequestParam("applicationName") String applicationName) {
         return systemMetricService.getMetricNameList(applicationName);
     }
 
     @RequestMapping(value = "/fieldNameList")
     @ResponseBody
     public List<String> getFieldNameList(
-            @RequestParam(value = "applicationName") String applicationName,
-            @RequestParam(value = "metricName") String metricName) {
+            @RequestParam("applicationName") String applicationName,
+            @RequestParam("metricName") String metricName) {
         return systemMetricService.getFieldNameList(applicationName, metricName);
     }
 
     @RequestMapping(value = "/tagBoList")
     @ResponseBody
     public List<TagBo> getTagBoList(
-            @RequestParam(value = "applicationName") String applicationName,
-            @RequestParam(value = "metricName") String metricName,
-            @RequestParam(value = "fieldName") String fieldName){
+            @RequestParam("applicationName") String applicationName,
+            @RequestParam("metricName") String metricName,
+            @RequestParam("fieldName") String fieldName){
         return systemMetricService.getTagBoList(applicationName, metricName, fieldName);
     }
 
     @RequestMapping(value = "/systemMetricBoList")
     @ResponseBody
     public List<SystemMetricBo> getSystemMetricBoList(
-            @RequestParam(value = "applicationName") String applicationName,
-            @RequestParam(value = "metricName") String metricName,
-            @RequestParam(value = "fieldName") String fieldName,
-            @RequestParam(value = "tags") List<String> tags,
-            @RequestParam(value = "from") long from,
-            @RequestParam(value = "to") long to){
+            @RequestParam("applicationName") String applicationName,
+            @RequestParam("metricName") String metricName,
+            @RequestParam("fieldName") String fieldName,
+            @RequestParam("tags") List<String> tags,
+            @RequestParam("from") long from,
+            @RequestParam("to") long to){
         return systemMetricService.getSystemMetricBoList(applicationName, metricName, fieldName, tags, Range.newRange(from, to));
     }
 
-    @RequestMapping(value = "/systemMetric/systemMetricChart")
+    @RequestMapping(value = "/systemMetricChart")
     @ResponseBody
     public SystemMetricChart getSystemMetricChart(
-            @RequestParam(value = "applicationName") String applicationName,
-            @RequestParam(value = "metricName") String metricName,
-            @RequestParam(value = "fieldName") String fieldName,
-            @RequestParam(value = "tags") List<String> tags,
-            @RequestParam(value = "from") long from,
-            @RequestParam(value = "to") long to){
-        TimeWindowSampler sampler = new TimeWindowSlotCentricSampler();
-        // above sampler?
+            @RequestParam("applicationName") String applicationName,
+            @RequestParam("metricName") String metricName,
+            @RequestParam("fieldName") String fieldName,
+            @RequestParam("tags") List<String> tags,
+            @RequestParam("from") long from,
+            @RequestParam("to") long to,
+            @RequestParam(value = "interval", required = false)Integer interval){
+        final int minSamplingInterval = 10;
+        final long intervalMs = interval != null && interval > minSamplingInterval? interval * 1000L : minSamplingInterval * 1000L;
+        TimeWindowSampler sampler = new TimeWindowSampler() {
+            @Override
+            public long getWindowSize(Range range) {
+                return intervalMs;
+            }
+        };
         TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         return systemMetricService.getSystemMetricChart(applicationName, metricName, fieldName, tags, timeWindow);
     }

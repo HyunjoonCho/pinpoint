@@ -20,6 +20,8 @@ import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.mapper.SystemMetricMapper;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricPoint;
 import org.apache.pinot.client.ResultSet;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +32,7 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-//@Component
+@Component
 public class PinotSystemMetricMapper extends SystemMetricMapper {
 
     public List<String> processStringList(ResultSet resultSet) {
@@ -59,31 +61,74 @@ public class PinotSystemMetricMapper extends SystemMetricMapper {
         return tagBoList;
     }
 
-    public List<SystemMetricBo> processSystemMetricBoList(ResultSet resultSet) {
+    public List<SystemMetricBo> processSystemMetricBoList(ResultSet resultSet, boolean isLong) {
         int numRows = resultSet.getRowCount();
         List<SystemMetricBo> systemMetricBoList = new ArrayList<>();
 
-        boolean isLong = resultSet.getDouble(0, 1) == -1;
-
         FieldBo fieldBo;
-        for (int i = 0; i < numRows; i++) {
-            if (isLong) {
-                fieldBo = new FieldBo(resultSet.getString(i, 3), resultSet.getLong(i, 2));
-            } else {
-                fieldBo = new FieldBo(resultSet.getString(i, 3), resultSet.getDouble(i, 1));
+        if(isLong) {
+            for (int i = 0; i < numRows; i++) {
+                fieldBo = new FieldBo(resultSet.getString(i, 1), resultSet.getLong(i, 2));
+
+                systemMetricBoList.add(
+                        new SystemMetricBo(
+                                fieldBo,
+                                resultSet.getString(i, 3),
+                                parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)),
+                                resultSet.getLong(i, 6)
+                        )
+                );
             }
 
-            systemMetricBoList.add(
-                    new SystemMetricBo(
-                            fieldBo,
-                            resultSet.getString(i, 4),
-                            parseTagBos(resultSet.getString(i, 5), resultSet.getString(i, 6)),
-                            resultSet.getLong(i, 7)
-                    )
-            );
+        } else {
+            for (int i = 0; i < numRows; i++) {
+                fieldBo = new FieldBo(resultSet.getString(i, 1), resultSet.getDouble(i, 2));
+
+                systemMetricBoList.add(
+                        new SystemMetricBo(
+                                fieldBo,
+                                resultSet.getString(i, 3),
+                                parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)),
+                                resultSet.getLong(i, 6)
+                        )
+                );
+            }
         }
 
         return systemMetricBoList;
+    }
+
+    public List<SampledSystemMetric> processSampledSystemMetric(ResultSet resultSet, boolean isLong) {
+        int numRows = resultSet.getRowCount();
+        List<SampledSystemMetric> sampledSystemMetrics = new ArrayList<>();
+
+        SystemMetricPoint systemMetricPoint;
+        if (isLong) {
+            for (int i = 0; i < numRows; i++) {
+                systemMetricPoint = new SystemMetricPoint(resultSet.getLong(i, 6), resultSet.getLong(i, 2));
+
+                sampledSystemMetrics.add(
+                        new SampledSystemMetric(
+                                systemMetricPoint,
+                                parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)).toString()
+                        )
+                );
+            }
+
+        } else {
+            for (int i = 0; i < numRows; i++) {
+                systemMetricPoint = new SystemMetricPoint(resultSet.getLong(i, 6), resultSet.getDouble(i, 2));
+
+                sampledSystemMetrics.add(
+                        new SampledSystemMetric(
+                                systemMetricPoint,
+                                parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)).toString()
+                        )
+                );
+            }
+        }
+
+        return sampledSystemMetrics;
     }
 
     private List<TagBo> parseTagBos(String tagNames, String tagValues) {

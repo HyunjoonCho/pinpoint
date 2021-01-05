@@ -18,6 +18,7 @@ package com.navercorp.pinpoint.web.metric.util.druid;
 
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.util.QueryStatementWriter;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +30,7 @@ import java.util.TimeZone;
 /**
  * @author Hyunjoon Cho
  */
-@Component
+//@Component
 public class DruidQueryStatementWriter extends QueryStatementWriter {
     private final SimpleDateFormat format;
     public DruidQueryStatementWriter() {
@@ -38,13 +39,13 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
     }
 
     @Override
-    public String queryForMetricNameList(String applicationName) {
+    public String queryForMetricNameList(String applicationName, boolean isLong) {
         StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", "\"system-metric\""), "applicationName", applicationName);
         return queryStatement.toString();
     }
 
     @Override
-    public String queryForFieldNameList(String applicationName, String metricName) {
+    public String queryForFieldNameList(String applicationName, String metricName, boolean isLong) {
         StringBuilder queryStatement = addAndStatement(
                         addWhereStatement(
                                 buildBasicQuery(true, "fieldName", "\"system-metric\""),
@@ -57,7 +58,7 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
 
 
     @Override
-    public String queryForTagBoList(String applicationName, String metricName, String fieldName, long timestamp) {
+    public String queryForTagBoList(String applicationName, String metricName, String fieldName, boolean isLong, long timestamp) {
         StringBuilder queryStatement = addAndStatement(
                         addAndStatement(
                                 addWhereStatement(
@@ -70,7 +71,7 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
     }
 
     @Override
-    public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, Range range) {
+    public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
         StringBuilder queryStatement = addAndStatement(
                 addAndStatement(
                         addWhereStatement(
@@ -86,6 +87,11 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
         queryStatement = addRangeStatement(queryStatement, range);
 
         return queryStatement.toString();
+    }
+
+    @Override
+    public String queryForSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, TimeWindow timeWindow) {
+        return null;
     }
 
     private StringBuilder addContainsStringStatement(StringBuilder query, String key, String value) {

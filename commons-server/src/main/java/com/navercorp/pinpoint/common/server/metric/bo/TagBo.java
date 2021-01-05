@@ -54,4 +54,11 @@ public class TagBo {
 
         return tagName.equals(tagBo.getTagName()) && tagValue.equals(tagBo.getTagValue());
     }
+
+    @Override
+    public int hashCode() {
+        int result = tagName != null ? tagName.hashCode() : 0;
+        result = 31 * result + (tagValue != null ? tagValue.hashCode() : 0);
+        return result;
+    }
 }

@@ -24,10 +24,18 @@ import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hyunjoon Cho
@@ -35,9 +43,12 @@ import java.util.List;
 @Component
 public class PinotSystemMetricSerializer implements SystemMetricSerializer {
     private ObjectMapper objectMapper;
+    private Map<String, Boolean> fieldLongMap;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public PinotSystemMetricSerializer() {
         objectMapper = new ObjectMapper();
+        fieldLongMap = new HashMap<>();
     }
 
     public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) {
@@ -64,6 +75,9 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
             }else {
                 node.put("fieldValue", fieldBo.getFieldDoubleValue());
             }
+
+            fieldLongMap.put(systemMetricBo.getMetricName().concat("_").concat(fieldBo.getFieldName()), fieldBo.isLong());
+
             try {
                 if(fieldBo.isLong()) {
                     systemMetricStringList.add("L".concat(objectMapper.writeValueAsString(node)));
@@ -78,5 +92,16 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
         return systemMetricStringList;
     }
 
-
+    @PreDestroy
+    public void saveMetadata() {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(
+                    new FileOutputStream(new File("/Users/user/pinpoint/commons-server/SystemMetricMetadata.txt")));
+            oos.writeObject(fieldLongMap);
+            oos.close();
+            logger.info("Wrote metadata to file!");
+        } catch (Exception e) {
+            logger.warn("Failed to save metadata: {}", e.getMessage());
+        }
+    }
 }

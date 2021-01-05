@@ -18,6 +18,7 @@ package com.navercorp.pinpoint.web.metric.util.pinot;
 
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.util.QueryStatementWriter;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.stereotype.Component;
 
@@ -26,21 +27,26 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-//@Component
+@Component
 public class PinotQueryStatementWriter extends QueryStatementWriter {
 
+    private final static String LONG_DB = "systemMetricLong";
+    private final static String DOUBLE_DB = "systemMetricDouble";
+
     @Override
-    public String queryForMetricNameList(String applicationName) {
-        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", "systemMetric"), "applicationName", applicationName);
+    public String queryForMetricNameList(String applicationName, boolean isLong) {
+        String db = isLong? LONG_DB : DOUBLE_DB;
+        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", db), "applicationName", applicationName);
         return queryStatement.toString();
     }
 
     @Override
-    public String queryForFieldNameList(String applicationName, String metricName) {
+    public String queryForFieldNameList(String applicationName, String metricName, boolean isLong) {
+        String db = isLong? LONG_DB : DOUBLE_DB;
         StringBuilder queryStatement = setLimit(
                 addAndStatement(
                         addWhereStatement(
-                                buildBasicQuery(true, "fieldName", "systemMetric"),
+                                buildBasicQuery(true, "fieldName", db),
                                 "applicationName", applicationName),
                         "metricName", metricName),
                 20);
@@ -48,12 +54,13 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
         return queryStatement.toString();
     }
 
-    public String queryTimestampForField(String applicationName, String metricName, String fieldName) {
+    public String queryTimestampForField(String applicationName, String metricName, String fieldName, boolean isLong) {
+        String db = isLong? LONG_DB : DOUBLE_DB;
         StringBuilder queryStatement = setLimit(
                 addAndStatement(
                         addAndStatement(
                                 addWhereStatement(
-                                        buildBasicQuery(true, "timestampInEpoch", "systemMetric"),
+                                        buildBasicQuery(true, "timestampInEpoch", db),
                                         "applicationName", applicationName),
                                 "metricName", metricName),
                         "fieldName", fieldName),
@@ -63,12 +70,13 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
     }
 
     @Override
-    public String queryForTagBoList(String applicationName, String metricName, String fieldName, long timestamp) {
+    public String queryForTagBoList(String applicationName, String metricName, String fieldName, boolean isLong, long timestamp) {
+        String db = isLong? LONG_DB : DOUBLE_DB;
         StringBuilder queryStatement = addAndStatement(
                 addAndStatement(
                         addAndStatement(
                                 addWhereStatement(
-                                        buildBasicQuery(false, "tagName, tagValue", "systemMetric"),
+                                        buildBasicQuery(false, "tagName, tagValue", db),
                                         "applicationName", applicationName),
                                 "metricName", metricName),
                         "fieldName", fieldName),
@@ -78,11 +86,36 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
     }
 
     @Override
-    public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, Range range) {
+    public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
+        StringBuilder queryStatement = basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
+
+        long expectedLimit = ((range.getTo() - range.getFrom())/10000 - 1) * 10;
+        // by default, telegraf collect every 10sec = 10000ms
+        // make it configurable
+        queryStatement = setLimit(queryStatement, expectedLimit);
+
+        return queryStatement.toString();
+    }
+
+    @Override
+    public String queryForSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, TimeWindow timeWindow) {
+        Range range = timeWindow.getWindowRange();
+        StringBuilder queryStatement = basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
+
+        queryStatement = addSamplingCondition(queryStatement, timeWindow.getWindowSlotSize());
+
+        long expectedLimit = ((range.getTo() - range.getFrom())/10000 - 1) * 10;
+        queryStatement = setLimit(queryStatement, expectedLimit);
+
+        return queryStatement.toString();
+    }
+
+    private StringBuilder basicStatementForSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
+        String db = isLong? LONG_DB : DOUBLE_DB;
         StringBuilder queryStatement = addAndStatement(
                 addAndStatement(
                         addWhereStatement(
-                                buildBasicQuery(false, "*", "systemMetric"),
+                                buildBasicQuery(false, "*", db),
                                 "applicationName", applicationName),
                         "metricName", metricName),
                 "fieldName", fieldName);
@@ -94,18 +127,19 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
 
         queryStatement = addRangeStatement(queryStatement, range);
 
-        long expectedLimit = (range.getTo() - range.getFrom())/10000 - 1;
-        // by default, telegraf collect every 10sec = 10000ms
-        // make it configurable
-
-        queryStatement = setLimit(queryStatement, expectedLimit);
-
-        return queryStatement.toString();
+        return queryStatement;
     }
 
     private StringBuilder addRangeStatement(StringBuilder query, Range range) {
 
         return query.append(" AND ").append("timestampInEpoch").append(" >= ").append(range.getFrom())
                 .append(" AND ").append("timestampInEpoch").append(" <= ").append(range.getTo());
+    }
+
+    private StringBuilder addSamplingCondition(StringBuilder query, long intervalMs) {
+        if (intervalMs == 10000L) {
+            return query;
+        }
+        return query.append(" AND ").append("timestampInEpoch").append(" % ").append(intervalMs).append(" = 0");
     }
 }

@@ -22,6 +22,8 @@ import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.util.QueryStatementWriter;
 import com.navercorp.pinpoint.web.metric.mapper.pinot.PinotSystemMetricMapper;
 import com.navercorp.pinpoint.web.metric.util.pinot.PinotQueryStatementWriter;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.apache.pinot.client.Connection;
 import org.apache.pinot.client.ConnectionFactory;
@@ -32,16 +34,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author Hyunjoon Cho
  */
-//@Repository
+@Repository
 public class PinotSystemMetricDao implements SystemMetricDao {
-    private final String zkURL;
-    private final String pinotClusterName;
+    private static final String ZK_URL = "10.113.84.89:2191";
+    private static final String PINOT_CLUSTER_NAME = "PinotCluster";
     private final Connection pinotConnection;
     private final PinotQueryStatementWriter queryStatementWriter;
     private final PinotSystemMetricMapper pinotSystemMetricMapper;
@@ -50,62 +53,72 @@ public class PinotSystemMetricDao implements SystemMetricDao {
 
     public PinotSystemMetricDao(PinotQueryStatementWriter queryStatementWriter,
                                 PinotSystemMetricMapper pinotSystemMetricMapper) {
-        this.zkURL = "10.113.84.89:2191";
-        this.pinotClusterName = "PinotCluster";
-        pinotConnection = ConnectionFactory.fromZookeeper(zkURL + "/" + pinotClusterName);
+        pinotConnection = ConnectionFactory.fromZookeeper(ZK_URL + "/" + PINOT_CLUSTER_NAME);
         this.queryStatementWriter = Objects.requireNonNull(queryStatementWriter, "queryStatementWriter");
         this.pinotSystemMetricMapper = Objects.requireNonNull(pinotSystemMetricMapper, "pinotResultSetProcessor");
     }
-//
-//    public PinotSystemMetricDao(String zkURL,
-//                                String pinotClusterName,
-//                                QueryStatementWriter queryStatementWriter,
-//                                PinotSystemMetricMapper pinotSystemMetricMapper) {
-//        this.zkURL = Objects.requireNonNull(zkURL);
-//        this.pinotClusterName = Objects.requireNonNull(pinotClusterName);
-//        pinotConnection = ConnectionFactory.fromZookeeper(zkURL + "/" + pinotClusterName);
-//        this.queryStatementWriter = Objects.requireNonNull(queryStatementWriter, "queryStatementWriter");
-//        this.pinotSystemMetricMapper = Objects.requireNonNull(pinotSystemMetricMapper, "pinotResultSetProcessor");
-//    }
 
     @Override
     public List<String> getMetricNameList(String applicationName) {
-        String query = queryStatementWriter.queryForMetricNameList(applicationName);
-        ResultSet resultSet = queryAndGetResultSet(query);
-        return pinotSystemMetricMapper.processStringList(resultSet);
+        String queryLong = queryStatementWriter.queryForMetricNameList(applicationName, true);
+        String queryDouble = queryStatementWriter.queryForMetricNameList(applicationName, false);
+        ResultSet resultSetLong = queryAndGetResultSet(queryLong);
+        ResultSet resultSetDouble = queryAndGetResultSet(queryDouble);
+
+        return mergeList(pinotSystemMetricMapper.processStringList(resultSetLong),
+                pinotSystemMetricMapper.processStringList(resultSetDouble));
     }
 
     @Override
     public List<String> getFieldNameList(String applicationName, String metricName) {
-        String query = queryStatementWriter.queryForFieldNameList(applicationName, metricName);
-        ResultSet resultSet = queryAndGetResultSet(query);
-        return pinotSystemMetricMapper.processStringList(resultSet);
+        String queryLong = queryStatementWriter.queryForFieldNameList(applicationName, metricName, true);
+        String queryDouble = queryStatementWriter.queryForFieldNameList(applicationName, metricName, false);
+        ResultSet resultSetLong = queryAndGetResultSet(queryLong);
+        ResultSet resultSetDouble = queryAndGetResultSet(queryDouble);
+
+        return mergeList(pinotSystemMetricMapper.processStringList(resultSetLong),
+                pinotSystemMetricMapper.processStringList(resultSetDouble));
     }
 
     @Override
-    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
-        ResultSet timestampResultSet = queryAndGetResultSet(queryStatementWriter.queryTimestampForField(applicationName, metricName, fieldName));
+    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName, boolean isLong) {
+        ResultSet timestampResultSet = queryAndGetResultSet(queryStatementWriter.queryTimestampForField(applicationName, metricName, fieldName, isLong));
         long timestamp = timestampResultSet.getLong(0, 0);
-        ResultSet resultSet = queryAndGetResultSet(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, timestamp));
-        return pinotSystemMetricMapper.processTagBoList(resultSet);
 
-        // 1. pinot does not support distinct -> remove duplicate tagBo
-        // 2. time scanning - not just a point but range
+        String query = queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, isLong, timestamp);
+        ResultSet resultSet = queryAndGetResultSet(query);
+
+        return pinotSystemMetricMapper.processTagBoList(resultSet);
     }
 
     @Override
-    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, Range range) {
-        String query = queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, range);
-//         logger.info(query);
+    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, Range range) {
+        String query = queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, isLong, range);
         ResultSet resultSet = queryAndGetResultSet(query);
-//        logger.info("rows: {} columns: {}", resultSet.getRowCount(), resultSet.getColumnCount());
+        return pinotSystemMetricMapper.processSystemMetricBoList(resultSet, isLong);
+    }
 
-        return pinotSystemMetricMapper.processSystemMetricBoList(resultSet);
+    @Override
+    public List<SampledSystemMetric> getSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, TimeWindow timeWindow) {
+        String query = queryStatementWriter.queryForSampledSystemMetric(applicationName, metricName, fieldName, tags, isLong, timeWindow);
+        ResultSet resultSet = queryAndGetResultSet(query);
+        return pinotSystemMetricMapper.processSampledSystemMetric(resultSet, isLong);
     }
 
     private ResultSet queryAndGetResultSet(String query) {
         Request request = new Request("sql", query);
         ResultSetGroup resultSetGroup = pinotConnection.execute(request);
         return resultSetGroup.getResultSet(0);
+    }
+
+    private List<String> mergeList(List<String> list, List<String> listToAdd) {
+        for (String s : listToAdd) {
+            if (!list.contains(s)) {
+                list.add(s);
+            }
+        }
+        Collections.sort(list);
+
+        return list;
     }
 }

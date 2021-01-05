@@ -52,7 +52,7 @@ public class PinotKafkaHandler implements KafkaHandler {
     }
 
     public void pushData(List<String> systemMetricStringList) {
-        logger.info("before time {}", System.currentTimeMillis());
+//        logger.info("before time {}", System.currentTimeMillis());
         for (String systemMetric : systemMetricStringList) {
 //            logger.info(systemMetric);
             if(systemMetric.startsWith("L")){
@@ -62,7 +62,7 @@ public class PinotKafkaHandler implements KafkaHandler {
             }
         }
         kafkaProducer.flush();
-        logger.info("after time {}", System.currentTimeMillis());
+//        logger.info("after time {}", System.currentTimeMillis());
     }
 
     @PreDestroy

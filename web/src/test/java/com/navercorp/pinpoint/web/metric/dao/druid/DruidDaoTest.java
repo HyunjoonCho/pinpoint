@@ -36,13 +36,13 @@ public class DruidDaoTest {
 
     @Test
     public void queryStatementWriterTest() {
-        System.out.println(queryStatementWriter.queryForMetricNameList("hyunjoon.cho"));
-        System.out.println(queryStatementWriter.queryForFieldNameList("hyunjoon.cho", "cpu"));
-        System.out.println(queryStatementWriter.queryForTagBoList("hyunjoon.cho", "cpu", "usage_user", 0));
+        System.out.println(queryStatementWriter.queryForMetricNameList("hyunjoon.cho", true));
+        System.out.println(queryStatementWriter.queryForFieldNameList("hyunjoon.cho", "cpu", true));
+        System.out.println(queryStatementWriter.queryForTagBoList("hyunjoon.cho", "cpu", "usage_user", true, 0));
         List<TagBo> tagBoList = new ArrayList<>();
         tagBoList.add(new TagBo("cpu", "cpu0"));
         tagBoList.add(new TagBo("host", "AL01256785.local"));
-        System.out.println(queryStatementWriter.queryForSystemMetricBoList("hyunjoon.cho", "cpu", "usage_user", tagBoList, Range.newRange(1608711230000L, 1608711290000L)));
+        System.out.println(queryStatementWriter.queryForSystemMetricBoList("hyunjoon.cho", "cpu", "usage_user", tagBoList, true, Range.newRange(1608711230000L, 1608711290000L)));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class DruidDaoTest {
 
     @Test
     public void daoTagBoListTest() {
-        System.out.println(dao.getTagBoList("hyunjoon.cho", "cpu", "usage_user"));
+        System.out.println(dao.getTagBoList("hyunjoon.cho", "cpu", "usage_user", false));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class DruidDaoTest {
         tagBoList.add(new TagBo("cpu", "cpu0"));
         tagBoList.add(new TagBo("host", "AL01256785.local"));
 
-        List<SystemMetricBo> systemMetricBoList = dao.getSystemMetricBoList("hyunjoon.cho", "cpu", "usage_user", tagBoList, Range.newRange(1608711230000L, 1608711290000L));
+        List<SystemMetricBo> systemMetricBoList = dao.getSystemMetricBoList("hyunjoon.cho", "cpu", "usage_user", tagBoList, true, Range.newRange(1608711230000L, 1608711290000L));
         Assert.assertEquals(7, systemMetricBoList.size());
         Assert.assertEquals(systemMetricBoList.get(0).getTagBos().size(), 2);
         Assert.assertFalse(systemMetricBoList.get(0).getFieldBo().isLong());
@@ -78,7 +78,7 @@ public class DruidDaoTest {
         List<TagBo> tagBoList = new ArrayList<>();
         tagBoList.add(new TagBo("host", "AL01256785.local"));
 
-        List<SystemMetricBo> systemMetricBoList = dao.getSystemMetricBoList("hyunjoon.cho", "mem", "available", tagBoList, Range.newRange(1608711230000L, 1608711290000L));
+        List<SystemMetricBo> systemMetricBoList = dao.getSystemMetricBoList("hyunjoon.cho", "mem", "available", tagBoList, true, Range.newRange(1608711230000L, 1608711290000L));
         Assert.assertEquals(7, systemMetricBoList.size());
         Assert.assertEquals(systemMetricBoList.get(0).getTagBos().size(), 1);
         Assert.assertTrue(systemMetricBoList.get(0).getFieldBo().isLong());

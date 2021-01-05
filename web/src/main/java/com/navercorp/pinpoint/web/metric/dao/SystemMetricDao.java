@@ -18,6 +18,8 @@ package com.navercorp.pinpoint.web.metric.dao;
 
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
 
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.List;
 public interface SystemMetricDao {
     List<String> getMetricNameList(String applicationName);
     List<String> getFieldNameList(String applicationName, String metricName);
-    List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName);
-    List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, Range range);
+    List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName, boolean isLong);
+    List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, Range range);
+    List<SampledSystemMetric> getSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, TimeWindow timeWindow);
 }

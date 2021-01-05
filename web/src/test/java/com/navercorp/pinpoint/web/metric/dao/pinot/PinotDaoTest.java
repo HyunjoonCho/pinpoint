@@ -51,7 +51,7 @@ public class PinotDaoTest {
 
     @Test
     public void getTagBoListTest() {
-        List<TagBo> tagBoList = systemMetricDao.getTagBoList("hyunjoon.cho", "cpu", "usage_idle");
+        List<TagBo> tagBoList = systemMetricDao.getTagBoList("hyunjoon.cho", "cpu", "usage_idle", false);
         System.out.println(tagBoList);
     }
 
@@ -66,7 +66,7 @@ public class PinotDaoTest {
         List<TagBo> tagBos = new ArrayList<>();
         tagBos.add(new TagBo(tagName, tagValue));
         Range range = Range.newRange(1607319340000L, 1607319480000L);
-        List<SystemMetricBo> systemMetricBoList = systemMetricDao.getSystemMetricBoList("hyunjoon.cho", metricName, fieldName, tagBos, range);
+        List<SystemMetricBo> systemMetricBoList = systemMetricDao.getSystemMetricBoList("hyunjoon.cho", metricName, fieldName, tagBos, true, range);
         for (SystemMetricBo systemMetricBo : systemMetricBoList) {
             System.out.println(systemMetricBo);
         }
