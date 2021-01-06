@@ -16,6 +16,7 @@
 
 package com.navercorp.pinpoint.collector.metric.dao.pinot;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
 import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
@@ -42,7 +43,7 @@ public class PinotSystemMetricDao implements SystemMetricDao {
     }
 
     @Override
-    public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) {
+    public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
         List<String> systemMetricStringList = systemMetricSerializer.serialize(applicationName, systemMetricBos);
         kafkaHandler.pushData(systemMetricStringList);
     }

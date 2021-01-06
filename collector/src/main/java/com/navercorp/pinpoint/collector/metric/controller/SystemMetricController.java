@@ -16,6 +16,7 @@
 
 package com.navercorp.pinpoint.collector.metric.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -61,7 +62,7 @@ public class SystemMetricController {
     @ResponseStatus(value = HttpStatus.OK)
     public void saveSystemMetric(
             @RequestHeader(value = "Application-Name")String applicationName,
-            @RequestBody String body) {
+            @RequestBody String body) throws JsonProcessingException {
 //        logger.info("controller time {}", System.currentTimeMillis());
 
         List<SystemMetricBo> systemMetricBos;

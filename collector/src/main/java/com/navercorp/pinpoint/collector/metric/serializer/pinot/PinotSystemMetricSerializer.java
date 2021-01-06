@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +52,7 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
         fieldLongMap = new HashMap<>();
     }
 
-    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) {
+    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
         if (systemMetricBos.isEmpty()) {
             return null;
         }
@@ -77,15 +78,10 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
             }
 
             fieldLongMap.put(systemMetricBo.getMetricName().concat("_").concat(fieldBo.getFieldName()), fieldBo.isLong());
-
-            try {
-                if(fieldBo.isLong()) {
-                    systemMetricStringList.add("L".concat(objectMapper.writeValueAsString(node)));
-                } else {
-                    systemMetricStringList.add(objectMapper.writeValueAsString(node));
-                }
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            if(fieldBo.isLong()) {
+                systemMetricStringList.add("L".concat(objectMapper.writeValueAsString(node)));
+            } else {
+                systemMetricStringList.add(objectMapper.writeValueAsString(node));
             }
         }
 
@@ -93,15 +89,11 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
     }
 
     @PreDestroy
-    public void saveMetadata() {
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream(new File("/Users/user/pinpoint/commons-server/SystemMetricMetadata.txt")));
-            oos.writeObject(fieldLongMap);
-            oos.close();
-            logger.info("Wrote metadata to file!");
-        } catch (Exception e) {
-            logger.warn("Failed to save metadata: {}", e.getMessage());
-        }
+    public void saveMetadata() throws IOException {
+        ObjectOutputStream oos = new ObjectOutputStream(
+                new FileOutputStream(new File("/Users/user/pinpoint/commons-server/SystemMetricMetadata.txt")));
+        oos.writeObject(fieldLongMap);
+        oos.close();
+        logger.info("Wrote metadata to file!");
     }
 }

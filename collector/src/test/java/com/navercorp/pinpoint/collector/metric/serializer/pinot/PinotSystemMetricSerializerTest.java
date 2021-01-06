@@ -16,6 +16,7 @@
 
 package com.navercorp.pinpoint.collector.metric.serializer.pinot;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
@@ -29,7 +30,7 @@ import java.util.List;
  */
 public class PinotSystemMetricSerializerTest {
     @Test
-    public void serializerTest() {
+    public void serializerTest() throws JsonProcessingException {
         List<SystemMetricBo> systemMetricBos = new ArrayList<>();
         FieldBo fieldBo = createFieldBo();
         systemMetricBos.add(new SystemMetricBo(fieldBo, "cpu", createTagBoList(0), 0L));

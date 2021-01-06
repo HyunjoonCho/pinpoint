@@ -41,7 +41,7 @@ public class DruidSystemMetricSerializer implements SystemMetricSerializer {
     }
 
     @Override
-    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) {
+    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException{
         if (systemMetricBos.isEmpty()) {
             return null;
         }
@@ -65,11 +65,7 @@ public class DruidSystemMetricSerializer implements SystemMetricSerializer {
                 node.put("fieldDoubleValue", fieldBo.getFieldDoubleValue());
                 node.put("fieldLongValue", -1);
             }
-            try {
-                systemMetricStringList.add(objectMapper.writeValueAsString(node));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            systemMetricStringList.add(objectMapper.writeValueAsString(node));
         }
 
         return systemMetricStringList;

@@ -16,6 +16,7 @@
 
 package com.navercorp.pinpoint.collector.metric.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class SystemMetricService {
         this.systemMetricDao = Objects.requireNonNull(systemMetricDao, "systemMetricDao");
     }
 
-    public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) {
+    public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
         systemMetricDao.insert(applicationName, systemMetricBos);
     }
 }
