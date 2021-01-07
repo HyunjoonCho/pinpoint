@@ -23,24 +23,33 @@ import java.util.Objects;
  * @author Hyunjoon Cho
  */
 public class SystemMetricBo {
-    private final FieldBo fieldBo;
     private final String metricName;
+    private final FieldBo fieldBo;
     private final List<TagBo> tagBos;
     private final long timestamp;
 
-    public SystemMetricBo(FieldBo fieldBo, String metricName, List<TagBo> tagBos, long timestamp) {
-        this.fieldBo = Objects.requireNonNull(fieldBo, "field");
+    public SystemMetricBo(String metricName, FieldBo fieldBo, List<TagBo> tagBos, long timestamp) {
         this.metricName = Objects.requireNonNull(metricName, "name");
+        this.fieldBo = Objects.requireNonNull(fieldBo, "field");
         this.tagBos = tagBos; // can be empty
         this.timestamp = timestamp;
     }
 
-    public FieldBo getFieldBo() {
-        return fieldBo;
-    }
-
     public String getMetricName() {
         return metricName;
+    }
+
+    public String getFieldName() {
+        return fieldBo.getFieldName();
+    }
+
+    // TODO: fix it based on web / reflection may work
+//    public Object getFieldValue() {
+//        return fieldBo.getFieldValue();
+//    }
+
+    public FieldBo getFieldBo() {
+        return fieldBo;
     }
 
     public List<TagBo> getTagBos() {

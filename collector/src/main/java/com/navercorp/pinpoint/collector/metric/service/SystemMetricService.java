@@ -18,25 +18,41 @@ package com.navercorp.pinpoint.collector.metric.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
+import com.navercorp.pinpoint.collector.metric.dao.pinot.PinotSystemMetricDoubleDao;
+import com.navercorp.pinpoint.collector.metric.dao.pinot.PinotSystemMetricLongDao;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Hyunjoon Cho
  */
 @Service
 public class SystemMetricService {
-    private final SystemMetricDao systemMetricDao;
+    private final PinotSystemMetricLongDao pinotSystemMetricLongDao;
+    private final PinotSystemMetricDoubleDao pinotSystemMetricDoubleDao;
+    private final SystemMetricMetadata systemMetricMetadata;
 
-
-    public SystemMetricService(SystemMetricDao systemMetricDao) {
-        this.systemMetricDao = Objects.requireNonNull(systemMetricDao, "systemMetricDao");
+    public SystemMetricService(PinotSystemMetricLongDao pinotSystemMetricLongDao,
+                               PinotSystemMetricDoubleDao pinotSystemMetricDoubleDao) {
+        this.pinotSystemMetricLongDao = Objects.requireNonNull(pinotSystemMetricLongDao, "pinotSystemMetricLongDao");
+        this.pinotSystemMetricDoubleDao = Objects.requireNonNull(pinotSystemMetricDoubleDao, "pinotSystemMetricDoubleDao");
+        this.systemMetricMetadata = SystemMetricMetadata.getMetadata();
     }
 
-    public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
-        systemMetricDao.insert(applicationName, systemMetricBos);
+    public void insert(String applicationName, List<SystemMetricBo> systemMetricBoList) throws JsonProcessingException {
+        Map<SystemMetricMetadata.MetricType, List<SystemMetricBo>> groupedSystemMetricBos = groupSystemMetric(systemMetricBoList);
+        pinotSystemMetricLongDao.insert(applicationName, groupedSystemMetricBos.get(SystemMetricMetadata.MetricType.LongCounter));
+        pinotSystemMetricDoubleDao.insert(applicationName, groupedSystemMetricBos.get(SystemMetricMetadata.MetricType.DoubleCounter));
+    }
+
+    public Map<SystemMetricMetadata.MetricType, List<SystemMetricBo>> groupSystemMetric (List<SystemMetricBo> systemMetricBos) {
+        return systemMetricBos.stream().collect(Collectors.groupingBy(metric -> systemMetricMetadata.get(metric.getMetricName(), metric.getFieldName())));
     }
 }

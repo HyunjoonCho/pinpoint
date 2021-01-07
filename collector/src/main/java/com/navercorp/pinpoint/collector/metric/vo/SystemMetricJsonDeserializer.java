@@ -23,8 +23,11 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.common.util.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,9 +38,12 @@ import java.util.Map;
 /**
  * @author Hyunjoon Cho
  */
+@Component
 public class SystemMetricJsonDeserializer extends JsonDeserializer<SystemMetricBo> {
 //    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final static long SEC_TO_MILLIS = 1000;
+
+    private SystemMetricMetadata systemMetricMetadata = SystemMetricMetadata.getMetadata();
 
     @Override
     public SystemMetricBo deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
@@ -47,27 +53,30 @@ public class SystemMetricJsonDeserializer extends JsonDeserializer<SystemMetricB
             return null;
         }
 
-        FieldBo fieldBo = deserializeField(jsonNode);
         String metricName = getTextNode(jsonNode, "name");
+        FieldBo fieldBo = deserializeField(metricName, jsonNode);
         List<TagBo> tagBos = deserializeTags(jsonNode);
         long timestamp = jsonNode.get("timestamp").asLong() * SEC_TO_MILLIS;
 
-        return new SystemMetricBo(fieldBo, metricName, tagBos, timestamp);
+        return new SystemMetricBo(metricName, fieldBo, tagBos, timestamp);
     }
 
-    private FieldBo deserializeField(JsonNode jsonNode) {
+    private FieldBo deserializeField(String metricName, JsonNode jsonNode) {
         JsonNode fieldsNode = jsonNode.get("fields");
         if (fieldsNode == null || !fieldsNode.isObject()) {
             return null;
         }
 
         String fieldType = getTextNode(fieldsNode, "fieldType");
-        if (isInt(fieldType)) {
-//            logger.info("{} asInt {} asLong {}", fieldsNode.get("fieldName").asText(), fieldsNode.get("fieldValue").asInt(), fieldsNode.get("fieldValue").asLong());
-            return new FieldBo(getTextNode(fieldsNode, "fieldName"), fieldsNode.get("fieldValue").asLong());
-        }
+        String fieldName = getTextNode(fieldsNode, "fieldName");
 
-        return new FieldBo(getTextNode(fieldsNode, "fieldName"), fieldsNode.get("fieldValue").asDouble());
+        if (isInt(fieldType)) {
+            systemMetricMetadata.put(metricName, fieldName, SystemMetricMetadata.MetricType.LongCounter);
+            return new FieldBo(fieldName, fieldsNode.get("fieldValue").asLong());
+        } else {
+            systemMetricMetadata.put(metricName, fieldName, SystemMetricMetadata.MetricType.DoubleCounter);
+            return new FieldBo(fieldName, fieldsNode.get("fieldValue").asDouble());
+        }
     }
 
     private boolean isInt(String type) {
@@ -88,7 +97,6 @@ public class SystemMetricJsonDeserializer extends JsonDeserializer<SystemMetricB
         while (tagIterator.hasNext()) {
             Map.Entry<String, JsonNode> tag = tagIterator.next();
             tagBos.add(new TagBo(tag.getKey(), tag.getValue().asText()));
-//            logger.info("tag {} {}", tag.getValue().toString(), tag.getValue().asText());
         }
 
         if (tagBos.isEmpty()) {

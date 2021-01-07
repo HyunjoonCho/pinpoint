@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.util.pinot;
+package com.navercorp.pinpoint.collector.metric.util.druid;
 
-import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -30,19 +28,19 @@ import java.util.Properties;
 /**
  * @author Hyunjoon Cho
  */
-@Component
-public class PinotKafkaHandler implements KafkaHandler {
+//@Component
+public class DruidKafkaProducer {
     private Properties configs;
     private final KafkaProducer<String, String> kafkaProducer;
-    private static final String LONG_TOPIC = "system-metric-long";
-    private static final String DOUBLE_TOPIC = "system-metric-double";
-    private static final String BOOTSTRAP_SERVERS = "10.113.84.89:19092";
+    private static final String TOPIC = "system-metric-topic";
+    private static final String BOOTSTRAP_SERVERS = "IP:PORT";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 //    may turn to provider or factory if Kafka is required more widely
-//    may read from config
 
-    public PinotKafkaHandler() {
+    public DruidKafkaProducer() {
+        // read from config or get as parameter
+        // for now, get as argument
         configs = new Properties();
         configs.put("bootstrap.servers", BOOTSTRAP_SERVERS);
         configs.put("acks", "all");
@@ -52,17 +50,13 @@ public class PinotKafkaHandler implements KafkaHandler {
     }
 
     public void pushData(List<String> systemMetricStringList) {
-//        logger.info("before time {}", System.currentTimeMillis());
+        logger.info("before time {}", System.currentTimeMillis());
         for (String systemMetric : systemMetricStringList) {
 //            logger.info(systemMetric);
-            if(systemMetric.startsWith("L")){
-                kafkaProducer.send(new ProducerRecord<>(LONG_TOPIC, systemMetric.substring(1)));
-            } else {
-                kafkaProducer.send(new ProducerRecord<>(DOUBLE_TOPIC, systemMetric));
-            }
+            kafkaProducer.send(new ProducerRecord<>(TOPIC, systemMetric));
         }
         kafkaProducer.flush();
-//        logger.info("after time {}", System.currentTimeMillis());
+        logger.info("after time {}", System.currentTimeMillis());
     }
 
     @PreDestroy

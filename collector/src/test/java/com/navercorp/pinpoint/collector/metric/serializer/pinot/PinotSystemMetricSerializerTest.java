@@ -17,6 +17,7 @@
 package com.navercorp.pinpoint.collector.metric.serializer.pinot;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
@@ -33,10 +34,10 @@ public class PinotSystemMetricSerializerTest {
     public void serializerTest() throws JsonProcessingException {
         List<SystemMetricBo> systemMetricBos = new ArrayList<>();
         FieldBo fieldBo = createFieldBo();
-        systemMetricBos.add(new SystemMetricBo(fieldBo, "cpu", createTagBoList(0), 0L));
-        systemMetricBos.add(new SystemMetricBo(fieldBo, "cpu", createTagBoList(1), 0L));
+        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(0), 0L));
+        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(1), 0L));
 
-        PinotSystemMetricSerializer serializer = new PinotSystemMetricSerializer();
+        SystemMetricSerializer serializer = new PinotSystemMetricLongSerializer();
         List<String> serializedMetric = serializer.serialize("hyunjoon", systemMetricBos);
         for (String metric : serializedMetric) {
             System.out.println(metric);

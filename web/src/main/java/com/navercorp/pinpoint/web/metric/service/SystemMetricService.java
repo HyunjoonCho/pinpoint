@@ -17,6 +17,7 @@
 package com.navercorp.pinpoint.web.metric.service;
 
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
@@ -27,12 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -42,72 +39,56 @@ import java.util.Objects;
 public class SystemMetricService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SystemMetricDao systemMetricDao;
-    private final Map<String, Boolean> fieldLongMap;
+    private final SystemMetricMetadata systemMetricMetadata;
 
     public SystemMetricService(SystemMetricDao systemMetricDao) {
         this.systemMetricDao = Objects.requireNonNull(systemMetricDao, "systemMetricDao");
-        this.fieldLongMap = loadMetadata();
-    }
-
-    private Map<String, Boolean> loadMetadata() {
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File("/Users/user/pinpoint/commons-server/SystemMetricMetadata.txt")));
-            Map<String, Boolean> map = (Map<String, Boolean>) ois.readObject();
-            logger.info("metadata {}", map.toString());
-            return map;
-        } catch (Exception e) {
-            logger.warn("Failed to load metadata {}", e.getMessage());
-        }
-        return null;
+        this.systemMetricMetadata = SystemMetricMetadata.getMetadata();
     }
 
     public List<String> getMetricNameList(String applicationName) {
-        return systemMetricDao.getMetricNameList(Objects.requireNonNull(applicationName, "applicationName"));
+        Objects.requireNonNull(applicationName, "applicationName");
+        return systemMetricDao.getMetricNameList(applicationName);
     }
 
     public List<String> getFieldNameList(String applicationName, String metricName) {
-        return systemMetricDao.getFieldNameList(
-                Objects.requireNonNull(applicationName, "applicationName"),
-                Objects.requireNonNull(metricName, "metricName")
-        );
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(metricName, "metricName");
+        return systemMetricDao.getFieldNameList(applicationName, metricName);
     }
 
+    // TODO: Replace isLong with MetricType / Separate MetricType enum?
     public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
-        return systemMetricDao.getTagBoList(
-                Objects.requireNonNull(applicationName, "applicationName"),
-                Objects.requireNonNull(metricName, "metricName"),
-                Objects.requireNonNull(fieldName, "fieldName"),
-                fieldLongMap.get(metricName.concat("_").concat(fieldName))
-        );
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(metricName, "metricName");
+        Objects.requireNonNull(fieldName, "fieldName");
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName.concat("_").concat(fieldName));
+        return systemMetricDao.getTagBoList(applicationName, metricName, fieldName, false);
     }
 
     public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<String> tags, Range range){
-
-        return systemMetricDao.getSystemMetricBoList(
-                Objects.requireNonNull(applicationName, "applicationName"),
-                Objects.requireNonNull(metricName, "metricName"),
-                Objects.requireNonNull(fieldName, "fieldName"),
-                parseTags(Objects.requireNonNull(tags, "tags")),
-                fieldLongMap.get(metricName.concat("_").concat(fieldName)),
-                range
-        );
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(metricName, "metricName");
+        Objects.requireNonNull(fieldName, "fieldName");
+        Objects.requireNonNull(tags, "tags");
+        List<TagBo> tagBoList = parseTags(tags);
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName.concat("_").concat(fieldName));
+        return systemMetricDao.getSystemMetricBoList(applicationName, metricName, fieldName, tagBoList, false, range);
     }
 
     public SystemMetricChart getSystemMetricChart(String applicationName, String metricName, String fieldName, List<String> tags, TimeWindow timeWindow) {
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(metricName, "metricName");
+        Objects.requireNonNull(fieldName, "fieldName");
+        Objects.requireNonNull(tags, "tags");
+        List<TagBo> tagBoList = parseTags(tags);
         String chartName = metricName.concat("_").concat(fieldName);
-        boolean isLong = fieldLongMap.get(chartName);
-        List<SampledSystemMetric> sampledSystemMetrics = systemMetricDao.getSampledSystemMetric(
-                Objects.requireNonNull(applicationName, "applicationName"),
-                Objects.requireNonNull(metricName, "metricName"),
-                Objects.requireNonNull(fieldName, "fieldName"),
-                parseTags(Objects.requireNonNull(tags, "tags")),
-                isLong,
-                timeWindow
-        );
-
-        return new SystemMetricChart(timeWindow, chartName, isLong, sampledSystemMetrics);
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(chartName);
+        List<SampledSystemMetric> sampledSystemMetrics = systemMetricDao.getSampledSystemMetric(applicationName, metricName, fieldName, tagBoList, false, timeWindow);
+        return new SystemMetricChart(timeWindow, chartName, false, sampledSystemMetrics);
     }
 
+    // TODO: Extract to util
     public List<TagBo> parseTags(List<String> tags) {
         List<TagBo> tagBoList = new ArrayList<>();
         for (String tag : tags) {

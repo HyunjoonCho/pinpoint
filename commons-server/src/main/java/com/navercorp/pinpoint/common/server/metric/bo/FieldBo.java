@@ -21,52 +21,29 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-public class FieldBo {
+public class FieldBo<T>{
     private final String fieldName;
-    private long fieldLongValue;
-    private double fieldDoubleValue;
-    private final boolean isLong;
+    private final T fieldValue;
     // if false, float -> save as double for accuracy
 
-    public FieldBo(String fieldName, long fieldLongValue) {
+    public FieldBo(String fieldName, T fieldValue) {
         this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
-        this.fieldLongValue = fieldLongValue;
-        this.isLong = true;
-    }
-
-    public FieldBo(String fieldName, double fieldDoubleValue) {
-        this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
-        this.fieldDoubleValue = fieldDoubleValue;
-        this.isLong = false;
+        this.fieldValue = fieldValue;
     }
 
     public String getFieldName() {
         return fieldName;
     }
 
-    public long getFieldLongValue() {
-        return fieldLongValue;
-    }
-
-    public double getFieldDoubleValue() {
-        return fieldDoubleValue;
-    }
-
-    public boolean isLong() {
-        return isLong;
+    public T getFieldValue() {
+        return fieldValue;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("{");
         sb.append("name=").append(fieldName);
-        sb.append(", value=");
-        if (isLong) {
-            sb.append(fieldLongValue);
-        } else {
-            sb.append(fieldDoubleValue);
-        }
-        sb.append(", isLong=").append(isLong);
+        sb.append(", value=").append(fieldValue);
         sb.append('}');
         return sb.toString();
     }

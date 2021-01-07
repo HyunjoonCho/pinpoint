@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 NAVER Corp.
+ * Copyright 2021 NAVER Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.serializer.druid;
+package com.navercorp.pinpoint.collector.metric.serializer.pinot;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +24,7 @@ import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,15 +32,15 @@ import java.util.List;
 /**
  * @author Hyunjoon Cho
  */
-//@Component
-public class DruidSystemMetricSerializer implements SystemMetricSerializer {
+@Component
+public class PinotSystemMetricDoubleSerializer implements SystemMetricSerializer {
     private ObjectMapper objectMapper;
 
-    public DruidSystemMetricSerializer() {
+    public PinotSystemMetricDoubleSerializer() {
         objectMapper = new ObjectMapper();
     }
 
-    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException{
+    public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
         if (systemMetricBos.isEmpty()) {
             return null;
         }
@@ -49,23 +50,23 @@ public class DruidSystemMetricSerializer implements SystemMetricSerializer {
             ObjectNode node = objectMapper.createObjectNode();
             node.put("applicationName", applicationName);
             node.put("metricName", systemMetricBo.getMetricName());
-            node.put("timestamp", systemMetricBo.getTimestamp());
-            ArrayNode tags = node.putArray("tags");
+            node.put("timestampInEpoch", systemMetricBo.getTimestamp());
+            ArrayNode tagName = node.putArray("tagName");
+            ArrayNode tagValue = node.putArray("tagValue");
             for (TagBo tagBo : systemMetricBo.getTagBos()) {
-                tags.add(tagBo.toString());
+                tagName.add(tagBo.getTagName());
+                tagValue.add(tagBo.getTagValue());
             }
-            FieldBo fieldBo = systemMetricBo.getFieldBo();
-            node.put("fieldName", fieldBo.getFieldName());
-//            if (fieldBo.isLong()) {
-//                node.put("fieldLongValue", fieldBo.getFieldLongValue());
-//                node.put("fieldDoubleValue", -1);
-//            }else {
-//                node.put("fieldDoubleValue", fieldBo.getFieldDoubleValue());
-//                node.put("fieldLongValue", -1);
-//            }
+            node.put("fieldName", systemMetricBo.getFieldName());
+            putFieldValue(node, systemMetricBo.getFieldBo());
             systemMetricStringList.add(objectMapper.writeValueAsString(node));
         }
 
         return systemMetricStringList;
+    }
+
+    protected void putFieldValue(ObjectNode node, FieldBo fieldBo) {
+        FieldBo<Double> doubleFieldBo = (FieldBo<Double>) fieldBo;
+        node.put("fieldValue", doubleFieldBo.getFieldValue());
     }
 }

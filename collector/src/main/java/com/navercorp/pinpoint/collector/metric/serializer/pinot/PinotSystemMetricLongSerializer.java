@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 NAVER Corp.
+ * Copyright 2021 NAVER Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,32 +24,21 @@ import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer
 import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Hyunjoon Cho
  */
 @Component
-public class PinotSystemMetricSerializer implements SystemMetricSerializer {
-    private ObjectMapper objectMapper;
-    private Map<String, Boolean> fieldLongMap;
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+public class PinotSystemMetricLongSerializer implements SystemMetricSerializer {
 
-    public PinotSystemMetricSerializer() {
+    private ObjectMapper objectMapper;
+
+    public PinotSystemMetricLongSerializer() {
         objectMapper = new ObjectMapper();
-        fieldLongMap = new HashMap<>();
     }
 
     public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
@@ -69,31 +58,16 @@ public class PinotSystemMetricSerializer implements SystemMetricSerializer {
                 tagName.add(tagBo.getTagName());
                 tagValue.add(tagBo.getTagValue());
             }
-            FieldBo fieldBo = systemMetricBo.getFieldBo();
-            node.put("fieldName", fieldBo.getFieldName());
-            if (fieldBo.isLong()) {
-                node.put("fieldValue", fieldBo.getFieldLongValue());
-            }else {
-                node.put("fieldValue", fieldBo.getFieldDoubleValue());
-            }
-
-            fieldLongMap.put(systemMetricBo.getMetricName().concat("_").concat(fieldBo.getFieldName()), fieldBo.isLong());
-            if(fieldBo.isLong()) {
-                systemMetricStringList.add("L".concat(objectMapper.writeValueAsString(node)));
-            } else {
-                systemMetricStringList.add(objectMapper.writeValueAsString(node));
-            }
+            node.put("fieldName", systemMetricBo.getFieldName());
+            putFieldValue(node, systemMetricBo.getFieldBo());
+            systemMetricStringList.add(objectMapper.writeValueAsString(node));
         }
 
         return systemMetricStringList;
     }
 
-    @PreDestroy
-    public void saveMetadata() throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream(new File("/Users/user/pinpoint/commons-server/SystemMetricMetadata.txt")));
-        oos.writeObject(fieldLongMap);
-        oos.close();
-        logger.info("Wrote metadata to file!");
+    protected void putFieldValue(ObjectNode node, FieldBo fieldBo) {
+        FieldBo<Long> longFieldBo = (FieldBo<Long>) fieldBo;
+        node.put("fieldValue", longFieldBo.getFieldValue());
     }
 }

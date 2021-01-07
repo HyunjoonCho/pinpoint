@@ -18,10 +18,9 @@ package com.navercorp.pinpoint.collector.metric.dao.druid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
-import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
-import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
+import com.navercorp.pinpoint.collector.metric.serializer.druid.DruidSystemMetricSerializer;
+import com.navercorp.pinpoint.collector.metric.util.druid.DruidKafkaProducer;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,17 +30,17 @@ import java.util.Objects;
  */
 //@Repository
 public class DruidSystemMetricDao implements SystemMetricDao {
-    private final SystemMetricSerializer systemMetricSerializer;
-    private final KafkaHandler kafkaHandler;
+    private final DruidSystemMetricSerializer druidSystemMetricSerializer;
+    private final DruidKafkaProducer druidKafkaProducer;
 
-    public DruidSystemMetricDao(SystemMetricSerializer systemMetricSerializer,
-                                KafkaHandler kafkaHandler) {
-        this.systemMetricSerializer = Objects.requireNonNull(systemMetricSerializer, "systemMetricSerializer");
-        this.kafkaHandler = Objects.requireNonNull(kafkaHandler, "kafkaHandler");
+    public DruidSystemMetricDao(DruidSystemMetricSerializer druidSystemMetricSerializer,
+                                DruidKafkaProducer druidKafkaProducer) {
+        this.druidSystemMetricSerializer = Objects.requireNonNull(druidSystemMetricSerializer, "druidSystemMetricSerializer");
+        this.druidKafkaProducer = Objects.requireNonNull(druidKafkaProducer, "druidKafkaProducer");
     }
 
     @Override
     public void insert(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
-        kafkaHandler.pushData(systemMetricSerializer.serialize(applicationName, systemMetricBos));
+        druidKafkaProducer.pushData(druidSystemMetricSerializer.serialize(applicationName, systemMetricBos));
     }
 }

@@ -40,53 +40,45 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
 
     @Override
     public String queryForMetricNameList(String applicationName, boolean isLong) {
-        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", "\"system-metric\""), "applicationName", applicationName);
-        return queryStatement.toString();
+        buildBasicQuery(true, "metricName", "\"system-metric\"");
+        addWhereStatement("applicationName", applicationName);
+        return build();
     }
 
     @Override
     public String queryForFieldNameList(String applicationName, String metricName, boolean isLong) {
-        StringBuilder queryStatement = addAndStatement(
-                        addWhereStatement(
-                                buildBasicQuery(true, "fieldName", "\"system-metric\""),
-                                "applicationName", applicationName),
-                        "metricName", metricName);
+        buildBasicQuery(true, "fieldName", "\"system-metric\"");
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
 
-        return queryStatement.toString();
-
+        return build();
     }
 
 
     @Override
     public String queryForTagBoList(String applicationName, String metricName, String fieldName, boolean isLong, long timestamp) {
-        StringBuilder queryStatement = addAndStatement(
-                        addAndStatement(
-                                addWhereStatement(
-                                        buildBasicQuery(true, "tags", "\"system-metric\""),
-                                        "applicationName", applicationName),
-                                "metricName", metricName),
-                        "fieldName", fieldName);
+        buildBasicQuery(true, "tags", "\"system-metric\"");
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        addAndStatement("fieldName", fieldName);
 
-        return queryStatement.toString();
+        return build();
     }
 
     @Override
     public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
-        StringBuilder queryStatement = addAndStatement(
-                addAndStatement(
-                        addWhereStatement(
-                                buildBasicQuery(false, "*", "\"system-metric\""),
-                                "applicationName", applicationName),
-                        "metricName", metricName),
-                "fieldName", fieldName);
+        buildBasicQuery(false, "*", "\"system-metric\"");
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        addAndStatement("fieldName", fieldName);
 
         for (TagBo tagBo : tagBos) {
-            queryStatement = addContainsStringStatement(queryStatement, "tags", tagBo.toString());
+            addContainsStringStatement("tags", tagBo.toString());
         }
 
-        queryStatement = addRangeStatement(queryStatement, range);
+        addRangeStatement(range);
 
-        return queryStatement.toString();
+        return build();
     }
 
     @Override
@@ -94,12 +86,12 @@ public class DruidQueryStatementWriter extends QueryStatementWriter {
         return null;
     }
 
-    private StringBuilder addContainsStringStatement(StringBuilder query, String key, String value) {
-        return query.append(" AND ").append("CONTAINS_STRING(").append(key).append(",'").append(value).append("')");
+    private void addContainsStringStatement(String key, String value) {
+        queryBuilder.append(" AND ").append("CONTAINS_STRING(").append(key).append(",'").append(value).append("')");
     }
 
-    private StringBuilder addRangeStatement(StringBuilder query, Range range) {
-        return query.append(" AND ").append("__time").append(" >= '").append(format.format(new Date(range.getFrom()))).append('\'')
+    private void addRangeStatement(Range range) {
+        queryBuilder.append(" AND ").append("__time").append(" >= '").append(format.format(new Date(range.getFrom()))).append('\'')
                 .append(" AND ").append("__time").append(" <= '").append(format.format(new Date(range.getTo()))).append('\'');
     }
 }

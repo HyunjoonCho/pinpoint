@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 NAVER Corp.
+ * Copyright 2021 NAVER Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.metric.util.druid;
+package com.navercorp.pinpoint.collector.metric.util.pinot;
 
-import com.navercorp.pinpoint.collector.metric.util.KafkaHandler;
+import com.navercorp.pinpoint.collector.metric.util.SystemMetricKafkaProducer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -30,19 +30,16 @@ import java.util.Properties;
 /**
  * @author Hyunjoon Cho
  */
-//@Component
-public class DruidKafkaHandler implements KafkaHandler {
+@Component
+public class PinotKafkaDoubleProducer implements SystemMetricKafkaProducer {
     private Properties configs;
     private final KafkaProducer<String, String> kafkaProducer;
-    private static final String TOPIC = "system-metric-topic";
-    private static final String BOOTSTRAP_SERVERS = "IP:PORT";
+    private static final String TOPIC = "system-metric-double";
+    private static final String BOOTSTRAP_SERVERS = "10.113.84.89:19092";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-//    may turn to provider or factory if Kafka is required more widely
 
-    public DruidKafkaHandler() {
-        // read from config or get as parameter
-        // for now, get as argument
+    public PinotKafkaDoubleProducer() {
         configs = new Properties();
         configs.put("bootstrap.servers", BOOTSTRAP_SERVERS);
         configs.put("acks", "all");
@@ -52,13 +49,10 @@ public class DruidKafkaHandler implements KafkaHandler {
     }
 
     public void pushData(List<String> systemMetricStringList) {
-        logger.info("before time {}", System.currentTimeMillis());
         for (String systemMetric : systemMetricStringList) {
-//            logger.info(systemMetric);
             kafkaProducer.send(new ProducerRecord<>(TOPIC, systemMetric));
         }
         kafkaProducer.flush();
-        logger.info("after time {}", System.currentTimeMillis());
     }
 
     @PreDestroy

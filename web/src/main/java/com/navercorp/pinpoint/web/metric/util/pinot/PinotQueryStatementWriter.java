@@ -36,110 +36,91 @@ public class PinotQueryStatementWriter extends QueryStatementWriter {
     @Override
     public String queryForMetricNameList(String applicationName, boolean isLong) {
         String db = isLong? LONG_DB : DOUBLE_DB;
-        StringBuilder queryStatement = addWhereStatement(buildBasicQuery(true, "metricName", db), "applicationName", applicationName);
-        return queryStatement.toString();
+        buildBasicQuery(true, "metricName", db);
+        addWhereStatement("applicationName", applicationName);
+        return build();
     }
 
     @Override
     public String queryForFieldNameList(String applicationName, String metricName, boolean isLong) {
         String db = isLong? LONG_DB : DOUBLE_DB;
-        StringBuilder queryStatement = setLimit(
-                addAndStatement(
-                        addWhereStatement(
-                                buildBasicQuery(true, "fieldName", db),
-                                "applicationName", applicationName),
-                        "metricName", metricName),
-                20);
-
-        return queryStatement.toString();
+        buildBasicQuery(true, "fieldName", db);
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        setLimit(100);
+        return build();
     }
 
     public String queryTimestampForField(String applicationName, String metricName, String fieldName, boolean isLong) {
         String db = isLong? LONG_DB : DOUBLE_DB;
-        StringBuilder queryStatement = setLimit(
-                addAndStatement(
-                        addAndStatement(
-                                addWhereStatement(
-                                        buildBasicQuery(true, "timestampInEpoch", db),
-                                        "applicationName", applicationName),
-                                "metricName", metricName),
-                        "fieldName", fieldName),
-                1);
+        buildBasicQuery(true, "timestampInEpoch", db);
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        addAndStatement("fieldName", fieldName);
+        setLimit(1);
 
-        return queryStatement.toString();
+        return build();
     }
 
     @Override
     public String queryForTagBoList(String applicationName, String metricName, String fieldName, boolean isLong, long timestamp) {
         String db = isLong? LONG_DB : DOUBLE_DB;
-        StringBuilder queryStatement = addAndStatement(
-                addAndStatement(
-                        addAndStatement(
-                                addWhereStatement(
-                                        buildBasicQuery(false, "tagName, tagValue", db),
-                                        "applicationName", applicationName),
-                                "metricName", metricName),
-                        "fieldName", fieldName),
-                "timestampInEpoch", timestamp);
+        buildBasicQuery(false, "tagName, tagValue", db);
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        addAndStatement("fieldName", fieldName);
+        addAndStatement("timestampInEpoch", timestamp);
 
-        return queryStatement.toString();
+        return build();
     }
 
     @Override
     public String queryForSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
-        StringBuilder queryStatement = basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
+        basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
 
         long expectedLimit = ((range.getTo() - range.getFrom())/10000 - 1) * 10;
         // by default, telegraf collect every 10sec = 10000ms
         // make it configurable
-        queryStatement = setLimit(queryStatement, expectedLimit);
+        setLimit(expectedLimit);
 
-        return queryStatement.toString();
+        return build();
     }
 
     @Override
     public String queryForSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, TimeWindow timeWindow) {
         Range range = timeWindow.getWindowRange();
-        StringBuilder queryStatement = basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
+        basicStatementForSystemMetric(applicationName, metricName, fieldName, tagBos, isLong, range);
 
-        queryStatement = addSamplingCondition(queryStatement, timeWindow.getWindowSlotSize());
+        addSamplingCondition(timeWindow.getWindowSlotSize());
 
         long expectedLimit = ((range.getTo() - range.getFrom())/10000 - 1) * 10;
-        queryStatement = setLimit(queryStatement, expectedLimit);
+        setLimit(expectedLimit);
 
-        return queryStatement.toString();
+        return build();
     }
 
-    private StringBuilder basicStatementForSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
+    private void basicStatementForSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tagBos, boolean isLong, Range range) {
         String db = isLong? LONG_DB : DOUBLE_DB;
-        StringBuilder queryStatement = addAndStatement(
-                addAndStatement(
-                        addWhereStatement(
-                                buildBasicQuery(false, "*", db),
-                                "applicationName", applicationName),
-                        "metricName", metricName),
-                "fieldName", fieldName);
+        buildBasicQuery(false, "*", db);
+        addWhereStatement("applicationName", applicationName);
+        addAndStatement("metricName", metricName);
+        addAndStatement("fieldName", fieldName);
 
         for (TagBo tagBo : tagBos) {
-            queryStatement = addAndStatement(queryStatement, "tagName", tagBo.getTagName());
-            queryStatement = addAndStatement(queryStatement, "tagValue", tagBo.getTagValue());
+            addAndStatement("tagName", tagBo.getTagName());
+            addAndStatement("tagValue", tagBo.getTagValue());
         }
-
-        queryStatement = addRangeStatement(queryStatement, range);
-
-        return queryStatement;
+        addRangeStatement(range);
     }
 
-    private StringBuilder addRangeStatement(StringBuilder query, Range range) {
-
-        return query.append(" AND ").append("timestampInEpoch").append(" >= ").append(range.getFrom())
+    private void addRangeStatement(Range range) {
+        queryBuilder.append(" AND ").append("timestampInEpoch").append(" >= ").append(range.getFrom())
                 .append(" AND ").append("timestampInEpoch").append(" <= ").append(range.getTo());
     }
 
-    private StringBuilder addSamplingCondition(StringBuilder query, long intervalMs) {
-        if (intervalMs == 10000L) {
-            return query;
+    private void addSamplingCondition(long intervalMs) {
+        if (intervalMs != 10000L) {
+            queryBuilder.append(" AND ").append("timestampInEpoch").append(" % ").append(intervalMs).append(" = 0");
         }
-        return query.append(" AND ").append("timestampInEpoch").append(" % ").append(intervalMs).append(" = 0");
     }
 }
