@@ -20,6 +20,8 @@ import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
+import com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricDoubleDao;
+import com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricLongDao;
 import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
 import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricChart;
 import com.navercorp.pinpoint.web.util.TimeWindow;
@@ -38,32 +40,15 @@ import java.util.Objects;
 @Service
 public class SystemMetricService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final SystemMetricDao systemMetricDao;
+    private final PinotSystemMetricLongDao pinotSystemMetricLongDao;
+    private final PinotSystemMetricDoubleDao pinotSystemMetricDoubleDao;
     private final SystemMetricMetadata systemMetricMetadata;
 
-    public SystemMetricService(SystemMetricDao systemMetricDao) {
-        this.systemMetricDao = Objects.requireNonNull(systemMetricDao, "systemMetricDao");
+    public SystemMetricService(PinotSystemMetricLongDao pinotSystemMetricLongDao,
+                               PinotSystemMetricDoubleDao pinotSystemMetricDoubleDao) {
+        this.pinotSystemMetricLongDao = Objects.requireNonNull(pinotSystemMetricLongDao, "pinotSystemMetricLongDao");
+        this.pinotSystemMetricDoubleDao = Objects.requireNonNull(pinotSystemMetricDoubleDao, "pinotSystemMetricDoubleDao");
         this.systemMetricMetadata = SystemMetricMetadata.getMetadata();
-    }
-
-    public List<String> getMetricNameList(String applicationName) {
-        Objects.requireNonNull(applicationName, "applicationName");
-        return systemMetricDao.getMetricNameList(applicationName);
-    }
-
-    public List<String> getFieldNameList(String applicationName, String metricName) {
-        Objects.requireNonNull(applicationName, "applicationName");
-        Objects.requireNonNull(metricName, "metricName");
-        return systemMetricDao.getFieldNameList(applicationName, metricName);
-    }
-
-    // TODO: Replace isLong with MetricType / Separate MetricType enum?
-    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName) {
-        Objects.requireNonNull(applicationName, "applicationName");
-        Objects.requireNonNull(metricName, "metricName");
-        Objects.requireNonNull(fieldName, "fieldName");
-        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName.concat("_").concat(fieldName));
-        return systemMetricDao.getTagBoList(applicationName, metricName, fieldName, false);
     }
 
     public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<String> tags, Range range){
@@ -72,8 +57,14 @@ public class SystemMetricService {
         Objects.requireNonNull(fieldName, "fieldName");
         Objects.requireNonNull(tags, "tags");
         List<TagBo> tagBoList = parseTags(tags);
-        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName.concat("_").concat(fieldName));
-        return systemMetricDao.getSystemMetricBoList(applicationName, metricName, fieldName, tagBoList, false, range);
+
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName, fieldName);
+
+        if (metricType == SystemMetricMetadata.MetricType.LongCounter) {
+            return pinotSystemMetricLongDao.selectSystemMetricBo(applicationName, metricName, fieldName, tagBoList, range);
+        } else {
+            return pinotSystemMetricDoubleDao.selectSystemMetricBo(applicationName, metricName, fieldName, tagBoList, range);
+        }
     }
 
     public SystemMetricChart getSystemMetricChart(String applicationName, String metricName, String fieldName, List<String> tags, TimeWindow timeWindow) {
@@ -82,10 +73,11 @@ public class SystemMetricService {
         Objects.requireNonNull(fieldName, "fieldName");
         Objects.requireNonNull(tags, "tags");
         List<TagBo> tagBoList = parseTags(tags);
+
         String chartName = metricName.concat("_").concat(fieldName);
-        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(chartName);
-        List<SampledSystemMetric> sampledSystemMetrics = systemMetricDao.getSampledSystemMetric(applicationName, metricName, fieldName, tagBoList, false, timeWindow);
-        return new SystemMetricChart(timeWindow, chartName, false, sampledSystemMetrics);
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName, fieldName);
+//        List<SampledSystemMetric> sampledSystemMetrics = systemMetricDao.getSampledSystemMetric(applicationName, metricName, fieldName, tagBoList, false, timeWindow);
+        return new SystemMetricChart(timeWindow, chartName, false, null);
     }
 
     // TODO: Extract to util
@@ -96,5 +88,9 @@ public class SystemMetricService {
             tagBoList.add(new TagBo(tagSplit[0], tagSplit[1]));
         }
         return tagBoList;
+    }
+
+    public List<SampledSystemMetric> sampleSystemMetric(List<SystemMetricBo> systemMetricBos) {
+        return null;
     }
 }

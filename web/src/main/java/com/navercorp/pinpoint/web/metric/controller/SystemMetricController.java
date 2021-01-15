@@ -43,29 +43,6 @@ public class SystemMetricController {
         this.systemMetricService = Objects.requireNonNull(systemMetricService, "systemMetricService");
     }
 
-    @RequestMapping(value = "/metricNameList")
-    @ResponseBody
-    public List<String> getMetricNameList(@RequestParam("applicationName") String applicationName) {
-        return systemMetricService.getMetricNameList(applicationName);
-    }
-
-    @RequestMapping(value = "/fieldNameList")
-    @ResponseBody
-    public List<String> getFieldNameList(
-            @RequestParam("applicationName") String applicationName,
-            @RequestParam("metricName") String metricName) {
-        return systemMetricService.getFieldNameList(applicationName, metricName);
-    }
-
-    @RequestMapping(value = "/tagBoList")
-    @ResponseBody
-    public List<TagBo> getTagBoList(
-            @RequestParam("applicationName") String applicationName,
-            @RequestParam("metricName") String metricName,
-            @RequestParam("fieldName") String fieldName){
-        return systemMetricService.getTagBoList(applicationName, metricName, fieldName);
-    }
-
     @RequestMapping(value = "/systemMetricBoList")
     @ResponseBody
     public List<SystemMetricBo> getSystemMetricBoList(

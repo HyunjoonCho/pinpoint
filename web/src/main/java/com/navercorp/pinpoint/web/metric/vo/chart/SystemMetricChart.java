@@ -80,11 +80,11 @@ public class SystemMetricChart {
             ImmutableList.Builder<Chart<? extends Point>> builder = ImmutableList.builder();
             if (isLong) {
                 for (Map.Entry<String, List<SampledSystemMetric>> entry : taggedSystemMetrics.entrySet()) {
-                    builder.add(newLongChart(entry.getValue(), SampledSystemMetric::getLongPoint));
+//                    builder.add(newLongChart(entry.getValue(), SampledSystemMetric::getLongPoint));
                 }
             } else {
                 for (Map.Entry<String, List<SampledSystemMetric>> entry : taggedSystemMetrics.entrySet()) {
-                    builder.add(newDoubleChart(entry.getValue(), SampledSystemMetric::getDoublePoint));
+//                    builder.add(newDoubleChart(entry.getValue(), SampledSystemMetric::getDoublePoint));
                 }
             }
 

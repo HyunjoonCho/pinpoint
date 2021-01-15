@@ -72,8 +72,8 @@ public class PinotSystemMetricMapper extends SystemMetricMapper {
 
                 systemMetricBoList.add(
                         new SystemMetricBo(
-                                fieldBo,
                                 resultSet.getString(i, 3),
+                                fieldBo,
                                 parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)),
                                 resultSet.getLong(i, 6)
                         )
@@ -86,8 +86,8 @@ public class PinotSystemMetricMapper extends SystemMetricMapper {
 
                 systemMetricBoList.add(
                         new SystemMetricBo(
-                                fieldBo,
                                 resultSet.getString(i, 3),
+                                fieldBo,
                                 parseTagBos(resultSet.getString(i, 4), resultSet.getString(i, 5)),
                                 resultSet.getLong(i, 6)
                         )

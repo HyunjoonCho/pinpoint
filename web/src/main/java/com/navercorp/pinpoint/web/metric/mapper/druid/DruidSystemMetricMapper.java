@@ -71,8 +71,8 @@ public class DruidSystemMetricMapper extends SystemMetricMapper {
                 fieldBo = new FieldBo(resultSet.getString("fieldName"), resultSet.getDouble("fieldDoubleValue"));
             }
 
-            systemMetricBoList.add(new SystemMetricBo(fieldBo,
-                    resultSet.getString("metricName"),
+            systemMetricBoList.add(new SystemMetricBo(resultSet.getString("metricName"),
+                    fieldBo,
                     parseTagBoList(resultSet.getString("tags")),
                     parseTimestamp(resultSet.getString("__time"))));
         }

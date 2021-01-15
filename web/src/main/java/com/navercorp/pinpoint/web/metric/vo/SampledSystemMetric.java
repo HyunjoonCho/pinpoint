@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-public class SampledSystemMetric {
+public class SampledSystemMetric<T extends Number> {
     public static final Long UNCOLLECTED_LONG = -1L;
     public static final Double UNCOLLECTED_DOUBLE = -1D;
     public static final Point.UncollectedPointCreator<SystemMetricPoint<Long>> UNCOLLECTED_LONG_POINT_CREATOR = new Point.UncollectedPointCreator<SystemMetricPoint<Long>>() {
@@ -48,12 +48,8 @@ public class SampledSystemMetric {
         this.systemMetricPoint = Objects.requireNonNull(systemMetricPoint, "systemMetricPoint");
     }
 
-    public SystemMetricPoint<Double> getDoublePoint() {
-        return (SystemMetricPoint<Double>) systemMetricPoint;
-    }
-
-    public SystemMetricPoint<Long> getLongPoint() {
-        return (SystemMetricPoint<Long>) systemMetricPoint;
+    public SystemMetricPoint<T> getPoint() {
+        return (SystemMetricPoint<T>) systemMetricPoint;
     }
 
     public String getTags() {

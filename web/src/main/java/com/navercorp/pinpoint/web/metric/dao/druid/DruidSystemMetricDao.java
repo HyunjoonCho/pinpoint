@@ -42,7 +42,7 @@ import java.util.Properties;
  * @author Hyunjoon Cho
  */
 //@Repository
-public class DruidSystemMetricDao implements SystemMetricDao {
+public class DruidSystemMetricDao {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String druidUrl;
     private final Properties properties;
@@ -63,59 +63,6 @@ public class DruidSystemMetricDao implements SystemMetricDao {
         } catch (SQLException e) {
             logger.warn("Druid Connection Failed {}", e.getMessage());
         }
-    }
-
-    @Override
-    public List<String> getMetricNameList(String applicationName) {
-        try {
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForMetricNameList(applicationName, true));
-            return systemMetricMapper.processStringList(resultSet);
-        } catch (SQLException e) {
-            logger.warn("Getting Metric Name Failed {}", e.getMessage());
-        }
-        return null;
-    }
-
-    @Override
-    public List<String> getFieldNameList(String applicationName, String metricName) {
-        try {
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForFieldNameList(applicationName, metricName, true));
-            return systemMetricMapper.processStringList(resultSet);
-        } catch (SQLException e) {
-            logger.warn("Getting Field Name Failed {}", e.getMessage());
-        }
-        return null;
-    }
-
-    @Override
-    public List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName, boolean isLong) {
-        try {
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForTagBoList(applicationName, metricName, fieldName, true, 0));
-            return systemMetricMapper.processTagBoList(resultSet);
-        } catch (SQLException e) {
-            logger.warn("Getting Tags Failed {}", e.getMessage());
-        }
-        return null;
-    }
-
-    @Override
-    public List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, Range range) {
-        try {
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(queryStatementWriter.queryForSystemMetricBoList(applicationName, metricName, fieldName, tags, true, range));
-            return systemMetricMapper.processSystemMetricBoList(resultSet);
-        } catch (SQLException e) {
-            logger.warn("Getting System Metric Failed {}", e.getMessage());
-        }
-        return null;
-    }
-
-    @Override
-    public List<SampledSystemMetric> getSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, TimeWindow timeWindow) {
-        return null;
     }
 
     @PreDestroy

@@ -348,6 +348,11 @@
             <artifactId>pinot-java-client</artifactId>
             <version>0.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.pinot</groupId>
+            <artifactId>pinot-jdbc-client</artifactId>
+            <version>0.5.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.calcite.avatica</groupId>

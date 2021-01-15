@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricDoubleDao">
+
+    <select id="selectSystemMetric" resultType="SystemMetricBo">
+        SELECT *
+        FROM systemMetricDouble
+        WHERE applicationName = #{applicaionName}
+        AND metricName = #{metricName}
+        AND fieldName = #{fieldName}
+        <foreach collection="list" item="TagBo">
+            AND tagName = #{TagBo.tagName} AND tagValue = #{TagBo.tagValue}
+        </foreach>
+        AND timestampInEpoch &gt;= #{Range.from}
+        AND timestampInEpoch &lt;= #{Range.to}
+    </select>
+
+</mapper>

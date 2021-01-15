@@ -28,9 +28,5 @@ import java.util.List;
  * @author Hyunjoon Cho
  */
 public interface SystemMetricDao {
-    List<String> getMetricNameList(String applicationName);
-    List<String> getFieldNameList(String applicationName, String metricName);
-    List<TagBo> getTagBoList(String applicationName, String metricName, String fieldName, boolean isLong);
-    List<SystemMetricBo> getSystemMetricBoList(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, Range range);
-    List<SampledSystemMetric> getSampledSystemMetric(String applicationName, String metricName, String fieldName, List<TagBo> tags, boolean isLong, TimeWindow timeWindow);
+    List<SystemMetricBo> selectSystemMetricBo(String applicationName, String metricName, String fieldName, List<TagBo> tags,Range range);
 }

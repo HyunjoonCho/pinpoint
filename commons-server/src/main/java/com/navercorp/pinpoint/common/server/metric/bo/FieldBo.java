@@ -21,9 +21,9 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-public class FieldBo<T>{
-    private final String fieldName;
-    private final T fieldValue;
+public class FieldBo<T extends Number>{
+    private String fieldName;
+    private T fieldValue;
     // if false, float -> save as double for accuracy
 
     public FieldBo(String fieldName, T fieldValue) {
@@ -35,8 +35,16 @@ public class FieldBo<T>{
         return fieldName;
     }
 
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
     public T getFieldValue() {
         return fieldValue;
+    }
+
+    public void setFieldValue(T fieldValue) {
+        this.fieldValue = fieldValue;
     }
 
     @Override

@@ -22,8 +22,8 @@ import java.util.Objects;
  * @author Hyunjoon Cho
  */
 public class TagBo {
-    private final String tagName;
-    private final String tagValue;
+    private String tagName;
+    private String tagValue;
     public TagBo(String tagName, String tagValue) {
         this.tagName = Objects.requireNonNull(tagName);
         this.tagValue = Objects.requireNonNull(tagValue);
@@ -33,8 +33,16 @@ public class TagBo {
         return tagName;
     }
 
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
+    }
+
     public String getTagValue() {
         return tagValue;
+    }
+
+    public void setTagValue(String tagValue) {
+        this.tagValue = tagValue;
     }
 
     @Override

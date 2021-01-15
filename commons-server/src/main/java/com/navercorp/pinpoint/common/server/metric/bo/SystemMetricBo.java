@@ -23,10 +23,10 @@ import java.util.Objects;
  * @author Hyunjoon Cho
  */
 public class SystemMetricBo {
-    private final String metricName;
-    private final FieldBo fieldBo;
-    private final List<TagBo> tagBos;
-    private final long timestamp;
+    private String metricName;
+    private FieldBo fieldBo;
+    private List<TagBo> tagBos;
+    private long timestamp;
 
     public SystemMetricBo(String metricName, FieldBo fieldBo, List<TagBo> tagBos, long timestamp) {
         this.metricName = Objects.requireNonNull(metricName, "name");
@@ -37,6 +37,10 @@ public class SystemMetricBo {
 
     public String getMetricName() {
         return metricName;
+    }
+
+    public void setMetricName(String metricName) {
+        this.metricName = metricName;
     }
 
     public String getFieldName() {
@@ -52,12 +56,24 @@ public class SystemMetricBo {
         return fieldBo;
     }
 
+    public void setFieldBo(FieldBo fieldBo) {
+        this.fieldBo = fieldBo;
+    }
+
     public List<TagBo> getTagBos() {
         return tagBos;
     }
 
+    public void setTagBos(List<TagBo> tagBos) {
+        this.tagBos = tagBos;
+    }
+
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override
