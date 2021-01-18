@@ -17,14 +17,15 @@
 package com.navercorp.pinpoint.web.metric.dao.pinot;
 
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
-import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
-import com.navercorp.pinpoint.web.vo.Range;
-import org.apache.ibatis.annotations.Param;
-import org.mybatis.spring.SqlSessionTemplate;
+import com.navercorp.pinpoint.web.metric.mapper.pinot.PinotSystemMetricLongMapper;
+import com.navercorp.pinpoint.web.metric.util.SystemMetricTemplate;
+import com.navercorp.pinpoint.web.metric.vo.QueryParameter;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.util.TimeWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -34,25 +35,27 @@ import java.util.Objects;
  */
 @Repository
 public class PinotSystemMetricLongDao implements SystemMetricDao {
-    private static final String NAMESPACE = PinotSystemMetricLongDao.class.getPackage().getName() + "." + PinotSystemMetricLongDao.class.getSimpleName() + ".";
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final String LONG_TABLE = "systemMetricLong";
 
-    private final SqlSessionTemplate sqlPinotSessionTemplate;
+    private final SystemMetricTemplate systemMetricTemplate;
+    private final PinotSystemMetricLongMapper pinotSystemMetricLongMapper;
 
-    public PinotSystemMetricLongDao(SqlSessionTemplate sqlPinotSessionTemplate) {
-        this.sqlPinotSessionTemplate = Objects.requireNonNull(sqlPinotSessionTemplate, "sqlPinotSessionTemplate");
-    }
-
-    @Transactional(readOnly = true)
-    public List<String> getMetricNameList(String applicationName) {
-        return sqlPinotSessionTemplate.selectList(NAMESPACE + "selectMetricName", applicationName);
+    public PinotSystemMetricLongDao(SystemMetricTemplate systemMetricTemplate,
+                                    PinotSystemMetricLongMapper pinotSystemMetricLongMapper) {
+        this.systemMetricTemplate = Objects.requireNonNull(systemMetricTemplate, "systemMetricTemplate");
+        this.pinotSystemMetricLongMapper = Objects.requireNonNull(pinotSystemMetricLongMapper, "pinotSystemMetricLongMapper");
     }
 
     @Override
-    public List<SystemMetricBo> selectSystemMetricBo(@Param("applicationName") String applicationName,
-                                                     @Param("metricName") String metricName,
-                                                     @Param("fieldName") String fieldName,
-                                                     @Param("tagBos") List<TagBo> tags,
-                                                     @Param("range") Range range) {
-        return sqlPinotSessionTemplate.selectList(NAMESPACE + "selectSystemMetric");
+    public List<SystemMetricBo> getSystemMetricBo(QueryParameter queryParameter) {
+        queryParameter.setTableName(LONG_TABLE);
+        return systemMetricTemplate.selectSystemMetricBoList(queryParameter, pinotSystemMetricLongMapper);
+    }
+
+    @Override
+    public List<SampledSystemMetric<Long>> getSampledSystemMetric(QueryParameter queryParameter) {
+        queryParameter.setTableName(LONG_TABLE);
+        return systemMetricTemplate.selectSampledSystemMetricList(queryParameter, pinotSystemMetricLongMapper);
     }
 }

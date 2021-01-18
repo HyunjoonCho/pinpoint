@@ -22,16 +22,18 @@ import java.util.Objects;
 /**
  * @author Hyunjoon Cho
  */
-public class SystemMetricBo {
+public class SystemMetricBo<T extends Number> {
     private String metricName;
-    private FieldBo fieldBo;
+    private String fieldName;
+    private T fieldValue;
     private List<TagBo> tagBos;
     private long timestamp;
 
-    public SystemMetricBo(String metricName, FieldBo fieldBo, List<TagBo> tagBos, long timestamp) {
-        this.metricName = Objects.requireNonNull(metricName, "name");
-        this.fieldBo = Objects.requireNonNull(fieldBo, "field");
-        this.tagBos = tagBos; // can be empty
+    public SystemMetricBo(String metricName, String fieldName, T fieldValue, List<TagBo> tagBos, long timestamp) {
+        this.metricName = Objects.requireNonNull(metricName, "metricName");
+        this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
+        this.fieldValue = Objects.requireNonNull(fieldValue, "fieldValue");
+        this.tagBos = tagBos;
         this.timestamp = timestamp;
     }
 
@@ -44,20 +46,19 @@ public class SystemMetricBo {
     }
 
     public String getFieldName() {
-        return fieldBo.getFieldName();
+        return fieldName;
     }
 
-    // TODO: fix it based on web / reflection may work
-//    public Object getFieldValue() {
-//        return fieldBo.getFieldValue();
-//    }
-
-    public FieldBo getFieldBo() {
-        return fieldBo;
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
     }
 
-    public void setFieldBo(FieldBo fieldBo) {
-        this.fieldBo = fieldBo;
+    public T getFieldValue() {
+        return fieldValue;
+    }
+
+    public void setFieldValue(T fieldValue) {
+        this.fieldValue = fieldValue;
     }
 
     public List<TagBo> getTagBos() {
@@ -80,7 +81,8 @@ public class SystemMetricBo {
     public String toString() {
         final StringBuilder sb = new StringBuilder("SystemMetric{");
         sb.append("metric=").append(metricName);
-        sb.append(", field=").append(fieldBo);
+        sb.append(", field=").append(fieldName);
+        sb.append(", value=").append(fieldValue);
         sb.append(", tags=").append(tagBos);
         sb.append(", timestamp=").append(timestamp);
         sb.append('}');

@@ -13,14 +13,18 @@
         <property name="dataSource" ref="pinotDataSource"/>
     </bean>
 
+    <bean id="managedTransactionFactory" class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory"/>
+
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="pinotDataSource"/>
         <!-- mybatis basic config -->
         <property name="configLocation" value="classpath:/pinot/mybatis-pinot-config.xml"/>
         <!-- setting the location of mapper -->
-        <property name="mapperLocations" value="classpath*:/pinot/*Mapper.xml"/>
+        <property name="mapperLocations" value="classpath:/pinot/SystemMetricQueryMapper.xml"/>
         <!-- set "true" in order to catch the errors of declaration of statement more quickly -->
         <property name="failFast" value="true"/>
+
+        <property name="transactionFactory" ref="managedTransactionFactory"/>
 
         <property name="plugins">
             <list>
@@ -30,12 +34,6 @@
         </property>
     </bean>
 
-    <!-- in case of using interface mapper
-    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="com.navercorp.pinpoint.web.mapper.mysql" />
-        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
-    </bean>
-    -->
     <bean id="sqlPinotSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
         <constructor-arg index="0" ref="sqlSessionFactory"/>
     </bean>

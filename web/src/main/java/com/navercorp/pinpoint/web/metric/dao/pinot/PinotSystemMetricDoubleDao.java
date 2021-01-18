@@ -17,12 +17,14 @@
 package com.navercorp.pinpoint.web.metric.dao.pinot;
 
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
-import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
-import com.navercorp.pinpoint.web.vo.Range;
-import org.apache.ibatis.annotations.Param;
-import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.navercorp.pinpoint.web.metric.mapper.pinot.PinotSystemMetricDoubleMapper;
+import com.navercorp.pinpoint.web.metric.util.SystemMetricTemplate;
+import com.navercorp.pinpoint.web.metric.vo.QueryParameter;
+import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
+import com.navercorp.pinpoint.web.util.TimeWindow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -33,20 +35,27 @@ import java.util.Objects;
  */
 @Repository
 public class PinotSystemMetricDoubleDao implements SystemMetricDao {
-    private static final String NAMESPACE = PinotSystemMetricDoubleDao.class.getPackage().getName() + "." + PinotSystemMetricDoubleDao.class.getSimpleName() + ".";
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final String DOUBLE_TABLE = "systemMetricDouble";
 
-    private final SqlSessionTemplate sqlDoubleSessionTemplate;
+    private final SystemMetricTemplate systemMetricTemplate;
+    private final PinotSystemMetricDoubleMapper pinotSystemMetricDoubleMapper;
 
-    public PinotSystemMetricDoubleDao(SqlSessionTemplate sqlDoubleSessionTemplate) {
-        this.sqlDoubleSessionTemplate = Objects.requireNonNull(sqlDoubleSessionTemplate, "sqlDoubleSessionTemplate");
+    public PinotSystemMetricDoubleDao(SystemMetricTemplate systemMetricTemplate,
+                                      PinotSystemMetricDoubleMapper pinotSystemMetricDoubleMapper) {
+        this.systemMetricTemplate = Objects.requireNonNull(systemMetricTemplate, "systemMetricTemplate");
+        this.pinotSystemMetricDoubleMapper = Objects.requireNonNull(pinotSystemMetricDoubleMapper, "pinotSystemMetricDoubleMapper");
     }
 
     @Override
-    public List<SystemMetricBo> selectSystemMetricBo(@Param("applicationName") String applicationName,
-                                                     @Param("metricName") String metricName,
-                                                     @Param("fieldName") String fieldName,
-                                                     @Param("tagBos") List<TagBo> tags,
-                                                     @Param("range") Range range) {
-        return null;
+    public List<SystemMetricBo> getSystemMetricBo(QueryParameter queryParameter) {
+        queryParameter.setTableName(DOUBLE_TABLE);
+        return systemMetricTemplate.selectSystemMetricBoList(queryParameter, pinotSystemMetricDoubleMapper);
+    }
+
+    @Override
+    public List<SampledSystemMetric<Double>> getSampledSystemMetric(QueryParameter queryParameter) {
+        queryParameter.setTableName(DOUBLE_TABLE);
+        return systemMetricTemplate.selectSampledSystemMetricList(queryParameter, pinotSystemMetricDoubleMapper);
     }
 }

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.navercorp.pinpoint.collector.metric.service.SystemMetricService;
 import com.navercorp.pinpoint.collector.metric.vo.SystemMetricJsonDeserializer;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -69,6 +70,7 @@ public class SystemMetricController {
         try {
             JsonNode jsonNode = objectMapper.readTree(body).get("metrics");
             systemMetricBos = Arrays.asList(objectMapper.readValue(jsonNode.toString(), SystemMetricBo[].class));
+            SystemMetricMetadata.getMetadata().save();
         } catch (IOException e) {
             systemMetricBos = null;
             logger.warn("System Metric Deserialization Failed: {}", e.getMessage());

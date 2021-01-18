@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
-import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import org.springframework.stereotype.Component;
@@ -40,6 +39,7 @@ public class PinotSystemMetricDoubleSerializer implements SystemMetricSerializer
         objectMapper = new ObjectMapper();
     }
 
+    @Override
     public List<String> serialize(String applicationName, List<SystemMetricBo> systemMetricBos) throws JsonProcessingException {
         if (systemMetricBos.isEmpty()) {
             return null;
@@ -50,23 +50,22 @@ public class PinotSystemMetricDoubleSerializer implements SystemMetricSerializer
             ObjectNode node = objectMapper.createObjectNode();
             node.put("applicationName", applicationName);
             node.put("metricName", systemMetricBo.getMetricName());
-            node.put("timestampInEpoch", systemMetricBo.getTimestamp());
+            node.put("fieldName", systemMetricBo.getFieldName());
+            node.put("fieldValue", (Double) systemMetricBo.getFieldValue());
+
             ArrayNode tagName = node.putArray("tagName");
             ArrayNode tagValue = node.putArray("tagValue");
-            for (TagBo tagBo : systemMetricBo.getTagBos()) {
+            List<TagBo> tagBoList = systemMetricBo.getTagBos();
+            for (TagBo tagBo : tagBoList) {
                 tagName.add(tagBo.getTagName());
                 tagValue.add(tagBo.getTagValue());
             }
-            node.put("fieldName", systemMetricBo.getFieldName());
-            putFieldValue(node, systemMetricBo.getFieldBo());
+
+            node.put("timestampInEpoch", systemMetricBo.getTimestamp());
+
             systemMetricStringList.add(objectMapper.writeValueAsString(node));
         }
 
         return systemMetricStringList;
-    }
-
-    protected void putFieldValue(ObjectNode node, FieldBo fieldBo) {
-        FieldBo<Double> doubleFieldBo = (FieldBo<Double>) fieldBo;
-        node.put("fieldValue", doubleFieldBo.getFieldValue());
     }
 }

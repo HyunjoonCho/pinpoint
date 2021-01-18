@@ -18,7 +18,6 @@ package com.navercorp.pinpoint.collector.metric.serializer.pinot;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
-import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import org.junit.Test;
@@ -33,9 +32,9 @@ public class PinotSystemMetricSerializerTest {
     @Test
     public void serializerTest() throws JsonProcessingException {
         List<SystemMetricBo> systemMetricBos = new ArrayList<>();
-        FieldBo fieldBo = createFieldBo();
-        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(0), 0L));
-        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(1), 0L));
+//        FieldBo fieldBo = createFieldBo();
+//        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(0), 0L));
+//        systemMetricBos.add(new SystemMetricBo("cpu", fieldBo, createTagBoList(1), 0L));
 
         SystemMetricSerializer serializer = new PinotSystemMetricLongSerializer();
         List<String> serializedMetric = serializer.serialize("hyunjoon", systemMetricBos);
@@ -44,9 +43,9 @@ public class PinotSystemMetricSerializerTest {
         }
     }
 
-    public FieldBo createFieldBo() {
-        return new FieldBo("usage_user", 3.31F);
-    }
+//    public FieldBo createFieldBo() {
+//        return new FieldBo("usage_user", 3.31F);
+//    }
 
     public List<TagBo> createTagBoList(int num) {
         List<TagBo> tagBos = new ArrayList<>();

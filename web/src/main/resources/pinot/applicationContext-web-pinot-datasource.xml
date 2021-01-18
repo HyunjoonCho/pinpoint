@@ -4,6 +4,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="pinotDataSource"
+          class="com.navercorp.pinpoint.web.metric.mybatis.DataSourceDelegator">
+        <constructor-arg index="0" ref="originalDataSource"/>
+    </bean>
+
+    <bean id="originalDataSource"
           class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="${pinot.jdbc.driverClassName}" />
         <property name="url" value="${pinot.jdbc.url}" />

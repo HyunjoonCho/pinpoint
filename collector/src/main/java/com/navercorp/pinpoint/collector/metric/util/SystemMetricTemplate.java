@@ -36,7 +36,7 @@ public class SystemMetricTemplate {
     }
 
     public void saveMetric(String applicationName, List<SystemMetricBo> systemMetricBoList, SystemMetricSerializer systemMetricSerializer, SystemMetricKafkaProducer systemMetricKafkaProducer) throws JsonProcessingException {
-        List<String> stringifiedSystemMetricBos = systemMetricSerializer.serialize(applicationName, systemMetricBoList);
-        systemMetricKafkaProducer.pushData(stringifiedSystemMetricBos);
+        List<String> serializedSystemMetricBos = systemMetricSerializer.serialize(applicationName, systemMetricBoList);
+        systemMetricKafkaProducer.pushData(serializedSystemMetricBos);
     }
 }

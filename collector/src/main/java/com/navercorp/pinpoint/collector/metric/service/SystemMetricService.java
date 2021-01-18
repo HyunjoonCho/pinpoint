@@ -17,14 +17,12 @@
 package com.navercorp.pinpoint.collector.metric.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.collector.metric.dao.pinot.PinotSystemMetricDoubleDao;
 import com.navercorp.pinpoint.collector.metric.dao.pinot.PinotSystemMetricLongDao;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

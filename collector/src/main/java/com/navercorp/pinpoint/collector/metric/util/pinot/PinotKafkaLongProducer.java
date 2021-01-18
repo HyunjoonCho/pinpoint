@@ -34,12 +34,10 @@ import java.util.Properties;
 public class PinotKafkaLongProducer implements SystemMetricKafkaProducer {
     private Properties configs;
     private final KafkaProducer<String, String> kafkaProducer;
-    private static final String TOPIC = "system-metric-long";
     private static final String BOOTSTRAP_SERVERS = "10.113.84.89:19092";
+    private static final String TOPIC = "system-metric-long";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-//    may turn to provider or factory if Kafka is required more widely
-//    may read from config
 
     public PinotKafkaLongProducer() {
         configs = new Properties();
@@ -50,6 +48,7 @@ public class PinotKafkaLongProducer implements SystemMetricKafkaProducer {
         kafkaProducer = new KafkaProducer<>(configs);
     }
 
+    @Override
     public void pushData(List<String> systemMetricStringList) {
         for (String systemMetric : systemMetricStringList) {
             kafkaProducer.send(new ProducerRecord<>(TOPIC, systemMetric));

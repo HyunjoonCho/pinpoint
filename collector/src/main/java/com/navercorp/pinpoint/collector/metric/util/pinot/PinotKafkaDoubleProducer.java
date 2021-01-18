@@ -34,8 +34,8 @@ import java.util.Properties;
 public class PinotKafkaDoubleProducer implements SystemMetricKafkaProducer {
     private Properties configs;
     private final KafkaProducer<String, String> kafkaProducer;
-    private static final String TOPIC = "system-metric-double";
     private static final String BOOTSTRAP_SERVERS = "10.113.84.89:19092";
+    private static final String TOPIC = "system-metric-double";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -48,6 +48,7 @@ public class PinotKafkaDoubleProducer implements SystemMetricKafkaProducer {
         kafkaProducer = new KafkaProducer<>(configs);
     }
 
+    @Override
     public void pushData(List<String> systemMetricStringList) {
         for (String systemMetric : systemMetricStringList) {
             kafkaProducer.send(new ProducerRecord<>(TOPIC, systemMetric));

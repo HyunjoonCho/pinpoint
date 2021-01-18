@@ -38,19 +38,17 @@ import java.util.stream.Collectors;
 public class SystemMetricChart {
     private final SystemMetricChartGroup systemMetricChartGroup;
 
-    public SystemMetricChart(TimeWindow timeWindow, String chartName, boolean isLong, List<SampledSystemMetric> sampledSystemMetrics) {
-        this.systemMetricChartGroup = new SystemMetricChartGroup(timeWindow, chartName, isLong, sampledSystemMetrics);
+    public <T extends Number> SystemMetricChart(TimeWindow timeWindow, String chartName, List<SampledSystemMetric<T>> sampledSystemMetrics) {
+        this.systemMetricChartGroup = new SystemMetricChartGroup<>(timeWindow, chartName, sampledSystemMetrics);
     }
 
     public SystemMetricChartGroup getSystemMetricChartGroup() {
         return systemMetricChartGroup;
     }
 
-    public static class SystemMetricChartGroup {
+    public static class SystemMetricChartGroup <T extends Number> {
 
         private final String chartName;
-
-        private final boolean isLong;
 
         private final TimeWindow timeWindow;
 
@@ -58,55 +56,39 @@ public class SystemMetricChart {
 
         private final List<Chart<? extends Point>> charts;
 
-        private SystemMetricChartGroup(TimeWindow timeWindow, String chartName, boolean isLong, List<SampledSystemMetric> sampledSystemMetrics) {
+        private SystemMetricChartGroup(TimeWindow timeWindow, String chartName, List<SampledSystemMetric<T>> sampledSystemMetrics) {
             this.timeWindow = Objects.requireNonNull(timeWindow, "timeWindow");
             this.chartName = Objects.requireNonNull(chartName, "chartName");
-            this.isLong = isLong;
 
-            Map<String, List<SampledSystemMetric>> taggedSystemMetrics = sampledSystemMetrics.stream().collect(Collectors.groupingBy(metric -> metric.getTags()));
+            Map<String, List<SampledSystemMetric<T>>> taggedSystemMetrics = sampledSystemMetrics.stream().collect(Collectors.groupingBy(metric -> metric.getTags()));
             this.tagsList = processTagList(taggedSystemMetrics);
-            this.charts = processChartList(taggedSystemMetrics, isLong);
+            this.charts = processChartList(taggedSystemMetrics);
         }
 
-        private List<String> processTagList(Map<String, List<SampledSystemMetric>> taggedSystemMetrics) {
+        private List<String> processTagList(Map<String, List<SampledSystemMetric<T>>> taggedSystemMetrics) {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
-            for (Map.Entry<String, List<SampledSystemMetric>> entry : taggedSystemMetrics.entrySet()) {
+            for (Map.Entry<String, List<SampledSystemMetric<T>>> entry : taggedSystemMetrics.entrySet()) {
                 builder.add(entry.getKey());
             }
             return builder.build();
         }
 
-        private List<Chart<? extends Point>> processChartList(Map<String, List<SampledSystemMetric>> taggedSystemMetrics, boolean isLong) {
+        private List<Chart<? extends Point>> processChartList(Map<String, List<SampledSystemMetric<T>>> taggedSystemMetrics) {
             ImmutableList.Builder<Chart<? extends Point>> builder = ImmutableList.builder();
-            if (isLong) {
-                for (Map.Entry<String, List<SampledSystemMetric>> entry : taggedSystemMetrics.entrySet()) {
-//                    builder.add(newLongChart(entry.getValue(), SampledSystemMetric::getLongPoint));
-                }
-            } else {
-                for (Map.Entry<String, List<SampledSystemMetric>> entry : taggedSystemMetrics.entrySet()) {
-//                    builder.add(newDoubleChart(entry.getValue(), SampledSystemMetric::getDoublePoint));
-                }
+            for (Map.Entry<String, List<SampledSystemMetric<T>>> entry : taggedSystemMetrics.entrySet()) {
+                    builder.add(newChart(entry.getValue(), SampledSystemMetric::getPoint));
             }
 
             return builder.build();
         }
 
-        private Chart<SystemMetricPoint<Long>> newLongChart(List<SampledSystemMetric> sampledSystemMetrics, Function<SampledSystemMetric, SystemMetricPoint<Long>> function) {
-            TimeSeriesChartBuilder<SystemMetricPoint<Long>> builder = new TimeSeriesChartBuilder<>(this.timeWindow, SampledSystemMetric.UNCOLLECTED_LONG_POINT_CREATOR);
-            return builder.build(sampledSystemMetrics, function);
-        }
-
-        private Chart<SystemMetricPoint<Double>> newDoubleChart(List<SampledSystemMetric> sampledSystemMetrics, Function<SampledSystemMetric, SystemMetricPoint<Double>> function) {
-            TimeSeriesChartBuilder<SystemMetricPoint<Double>> builder = new TimeSeriesChartBuilder<>(this.timeWindow, SampledSystemMetric.UNCOLLECTED_DOUBLE_POINT_CREATOR);
+        private Chart<SystemMetricPoint<T>> newChart(List<SampledSystemMetric<T>> sampledSystemMetrics, Function<SampledSystemMetric<T>, SystemMetricPoint<T>> function) {
+            TimeSeriesChartBuilder<SystemMetricPoint<T>> builder = new TimeSeriesChartBuilder(this.timeWindow, SampledSystemMetric.UNCOLLECTED_POINT_CREATOR);
             return builder.build(sampledSystemMetrics, function);
         }
 
         public String getChartName() {
             return chartName;
-        }
-
-        public boolean isLong() {
-            return isLong;
         }
 
         public TimeWindow getTimeWindow() {

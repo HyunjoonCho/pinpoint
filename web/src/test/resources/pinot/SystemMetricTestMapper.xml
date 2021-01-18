@@ -4,7 +4,7 @@
 
 <mapper namespace="com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricLongDao">
 
-    <select id="selectMetricName" statementType="PREPARED" resultType="String">
+    <select id="selectMetricName" resultType="String">
         SELECT DISTINCT metricName
         FROM systemMetricLong
         WHERE applicationName = #{applicaionName}

@@ -16,13 +16,9 @@
 
 package com.navercorp.pinpoint.web.metric.mapper.druid;
 
-import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
-import com.navercorp.pinpoint.web.metric.mapper.SystemMetricMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import com.navercorp.pinpoint.web.metric.util.SystemMetricUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,7 +32,7 @@ import java.util.TimeZone;
  * @author Hyunjoon Cho
  */
 //@Component
-public class DruidSystemMetricMapper extends SystemMetricMapper {
+public class DruidSystemMetricMapper {
 //    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SimpleDateFormat format;
     public DruidSystemMetricMapper() {
@@ -64,17 +60,20 @@ public class DruidSystemMetricMapper extends SystemMetricMapper {
     public List<SystemMetricBo> processSystemMetricBoList(ResultSet resultSet) throws SQLException {
         List<SystemMetricBo> systemMetricBoList = new ArrayList<>();
         while (resultSet.next()) {
-            FieldBo fieldBo;
             if (resultSet.getDouble("fieldDoubleValue") == -1) {
-                fieldBo = new FieldBo(resultSet.getString("fieldName"), resultSet.getLong("fieldLongValue"));
+                systemMetricBoList.add(new SystemMetricBo<>(resultSet.getString("metricName"),
+                        resultSet.getString("fieldName"),
+                        resultSet.getLong("fieldLongValue"),
+                        parseTagBoList(resultSet.getString("tags")),
+                        parseTimestamp(resultSet.getString("__time"))));
             } else {
-                fieldBo = new FieldBo(resultSet.getString("fieldName"), resultSet.getDouble("fieldDoubleValue"));
+                systemMetricBoList.add(new SystemMetricBo<>(resultSet.getString("metricName"),
+                        resultSet.getString("fieldName"),
+                        resultSet.getDouble("fieldDoubleValue"),
+                        parseTagBoList(resultSet.getString("tags")),
+                        parseTimestamp(resultSet.getString("__time"))));
             }
 
-            systemMetricBoList.add(new SystemMetricBo(resultSet.getString("metricName"),
-                    fieldBo,
-                    parseTagBoList(resultSet.getString("tags")),
-                    parseTimestamp(resultSet.getString("__time"))));
         }
         return systemMetricBoList;
     }
@@ -84,7 +83,7 @@ public class DruidSystemMetricMapper extends SystemMetricMapper {
 
 //        logger.info("tags {}", tags);
         if (tags.startsWith("[")) {
-            String[] tagStrings = parseMultiValueFieldList(tags);
+            String[] tagStrings = SystemMetricUtils.parseMultiValueFieldList(tags);
             for (String tagString : tagStrings) {
                 tagBoList.add(parseTagBo(tagString));
             }

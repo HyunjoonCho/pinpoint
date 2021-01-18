@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.navercorp.pinpoint.collector.metric.serializer.SystemMetricSerializer;
-import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 
@@ -51,11 +50,11 @@ public class DruidSystemMetricSerializer implements SystemMetricSerializer {
             node.put("metricName", systemMetricBo.getMetricName());
             node.put("timestamp", systemMetricBo.getTimestamp());
             ArrayNode tags = node.putArray("tags");
-            for (TagBo tagBo : systemMetricBo.getTagBos()) {
-                tags.add(tagBo.toString());
-            }
-            FieldBo fieldBo = systemMetricBo.getFieldBo();
-            node.put("fieldName", fieldBo.getFieldName());
+//            for (TagBo tagBo : systemMetricBo.getTagBos()) {
+//                tags.add(tagBo.toString());
+//            }
+//            FieldBo fieldBo = systemMetricBo.getFieldBo();
+//            node.put("fieldName", fieldBo.getFieldName());
 //            if (fieldBo.isLong()) {
 //                node.put("fieldLongValue", fieldBo.getFieldLongValue());
 //                node.put("fieldDoubleValue", -1);

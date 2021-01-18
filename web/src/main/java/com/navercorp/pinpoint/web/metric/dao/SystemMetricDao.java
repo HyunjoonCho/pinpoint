@@ -18,6 +18,7 @@ package com.navercorp.pinpoint.web.metric.dao;
 
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
+import com.navercorp.pinpoint.web.metric.vo.QueryParameter;
 import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
 import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.vo.Range;
@@ -28,5 +29,6 @@ import java.util.List;
  * @author Hyunjoon Cho
  */
 public interface SystemMetricDao {
-    List<SystemMetricBo> selectSystemMetricBo(String applicationName, String metricName, String fieldName, List<TagBo> tags,Range range);
+    List<SystemMetricBo> getSystemMetricBo(QueryParameter queryParameter);
+    <T extends Number> List<SampledSystemMetric<T>> getSampledSystemMetric(QueryParameter queryParameter);
 }

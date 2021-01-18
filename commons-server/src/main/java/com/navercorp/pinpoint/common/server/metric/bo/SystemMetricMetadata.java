@@ -81,7 +81,7 @@ public class SystemMetricMetadata {
                     new FileOutputStream(new File(METADATA_PATH)));
             oos.writeObject(fieldTypeMap);
             oos.close();
-            logger.info("Saved Metadata");
+//            logger.info("Saved Metadata");
         } catch (IOException e) {
             logger.warn("Failed to Save Metadata");
         }

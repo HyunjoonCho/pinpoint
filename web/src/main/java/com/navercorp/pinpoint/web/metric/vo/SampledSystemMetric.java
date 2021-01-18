@@ -25,31 +25,24 @@ import java.util.Objects;
  * @author Hyunjoon Cho
  */
 public class SampledSystemMetric<T extends Number> {
-    public static final Long UNCOLLECTED_LONG = -1L;
-    public static final Double UNCOLLECTED_DOUBLE = -1D;
-    public static final Point.UncollectedPointCreator<SystemMetricPoint<Long>> UNCOLLECTED_LONG_POINT_CREATOR = new Point.UncollectedPointCreator<SystemMetricPoint<Long>>() {
+    public static final Number UNCOLLECTED_VALUE = -1;
+    public static final Point.UncollectedPointCreator<SystemMetricPoint<Number>> UNCOLLECTED_POINT_CREATOR = new Point.UncollectedPointCreator<SystemMetricPoint<Number>>() {
         @Override
-        public SystemMetricPoint<Long> createUnCollectedPoint(long xVal) {
-            return new SystemMetricPoint<>(xVal, UNCOLLECTED_LONG);
-        }
-    };
-    public static final Point.UncollectedPointCreator<SystemMetricPoint<Double>> UNCOLLECTED_DOUBLE_POINT_CREATOR = new Point.UncollectedPointCreator<SystemMetricPoint<Double>>() {
-        @Override
-        public SystemMetricPoint<Double> createUnCollectedPoint(long xVal) {
-            return new SystemMetricPoint<>(xVal, UNCOLLECTED_DOUBLE);
+        public SystemMetricPoint<Number> createUnCollectedPoint(long xVal) {
+            return new SystemMetricPoint<>(xVal, UNCOLLECTED_VALUE);
         }
     };
 
-    private final SystemMetricPoint systemMetricPoint;
+    private final SystemMetricPoint<T> systemMetricPoint;
     private final String tags;
 
-    public SampledSystemMetric (SystemMetricPoint systemMetricPoint, String tags) {
+    public SampledSystemMetric (SystemMetricPoint<T> systemMetricPoint, String tags) {
         this.tags = Objects.requireNonNull(tags, "tags");
         this.systemMetricPoint = Objects.requireNonNull(systemMetricPoint, "systemMetricPoint");
     }
 
     public SystemMetricPoint<T> getPoint() {
-        return (SystemMetricPoint<T>) systemMetricPoint;
+        return systemMetricPoint;
     }
 
     public String getTags() {

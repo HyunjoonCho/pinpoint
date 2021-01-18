@@ -19,9 +19,10 @@ package com.navercorp.pinpoint.web.metric.service;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
-import com.navercorp.pinpoint.web.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricDoubleDao;
 import com.navercorp.pinpoint.web.metric.dao.pinot.PinotSystemMetricLongDao;
+import com.navercorp.pinpoint.web.metric.util.SystemMetricUtils;
+import com.navercorp.pinpoint.web.metric.vo.QueryParameter;
 import com.navercorp.pinpoint.web.metric.vo.SampledSystemMetric;
 import com.navercorp.pinpoint.web.metric.vo.chart.SystemMetricChart;
 import com.navercorp.pinpoint.web.util.TimeWindow;
@@ -30,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,14 +56,25 @@ public class SystemMetricService {
         Objects.requireNonNull(metricName, "metricName");
         Objects.requireNonNull(fieldName, "fieldName");
         Objects.requireNonNull(tags, "tags");
-        List<TagBo> tagBoList = parseTags(tags);
+
+        List<TagBo> tagBoList = SystemMetricUtils.parseTagBos(tags);
+
+        QueryParameter queryParameter = new QueryParameter();
+        queryParameter.setApplicationName(applicationName);
+        queryParameter.setMetricName(metricName);
+        queryParameter.setFieldName(fieldName);
+        queryParameter.setTagBoList(tagBoList);
+        queryParameter.setRange(range);
 
         SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName, fieldName);
 
-        if (metricType == SystemMetricMetadata.MetricType.LongCounter) {
-            return pinotSystemMetricLongDao.selectSystemMetricBo(applicationName, metricName, fieldName, tagBoList, range);
-        } else {
-            return pinotSystemMetricDoubleDao.selectSystemMetricBo(applicationName, metricName, fieldName, tagBoList, range);
+        switch (metricType) {
+            case LongCounter:
+                return pinotSystemMetricLongDao.getSystemMetricBo(queryParameter);
+            case DoubleCounter:
+                return pinotSystemMetricDoubleDao.getSystemMetricBo(queryParameter);
+            default:
+                throw new RuntimeException("No Such Metric");
         }
     }
 
@@ -72,25 +83,33 @@ public class SystemMetricService {
         Objects.requireNonNull(metricName, "metricName");
         Objects.requireNonNull(fieldName, "fieldName");
         Objects.requireNonNull(tags, "tags");
-        List<TagBo> tagBoList = parseTags(tags);
 
-        String chartName = metricName.concat("_").concat(fieldName);
-        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName, fieldName);
-//        List<SampledSystemMetric> sampledSystemMetrics = systemMetricDao.getSampledSystemMetric(applicationName, metricName, fieldName, tagBoList, false, timeWindow);
-        return new SystemMetricChart(timeWindow, chartName, false, null);
-    }
+        List<TagBo> tagBoList = SystemMetricUtils.parseTagBos(tags);
 
-    // TODO: Extract to util
-    public List<TagBo> parseTags(List<String> tags) {
-        List<TagBo> tagBoList = new ArrayList<>();
-        for (String tag : tags) {
-            String[] tagSplit = tag.split(":");
-            tagBoList.add(new TagBo(tagSplit[0], tagSplit[1]));
+        QueryParameter queryParameter = new QueryParameter();
+        queryParameter.setApplicationName(applicationName);
+        queryParameter.setMetricName(metricName);
+        queryParameter.setFieldName(fieldName);
+        queryParameter.setTagBoList(tagBoList);
+        queryParameter.setRange(timeWindow.getWindowRange());
+
+        long intervalMs = timeWindow.getWindowSlotSize();
+        if (intervalMs != 10000) {
+            queryParameter.setIntervalMs(intervalMs);
         }
-        return tagBoList;
-    }
 
-    public List<SampledSystemMetric> sampleSystemMetric(List<SystemMetricBo> systemMetricBos) {
-        return null;
+        SystemMetricMetadata.MetricType metricType = systemMetricMetadata.get(metricName, fieldName);
+        String chartName = metricName.concat("_").concat(fieldName);
+
+        switch (metricType) {
+            case LongCounter:
+                List<SampledSystemMetric<Long>> sampledLongSystemMetrics = pinotSystemMetricLongDao.getSampledSystemMetric(queryParameter);
+                return new SystemMetricChart(timeWindow, chartName, sampledLongSystemMetrics);
+            case DoubleCounter:
+                List<SampledSystemMetric<Double>> sampledDoubleSystemMetrics = pinotSystemMetricDoubleDao.getSampledSystemMetric(queryParameter);
+                return new SystemMetricChart(timeWindow, chartName, sampledDoubleSystemMetrics);
+            default:
+                throw new RuntimeException("No Such Metric");
+        }
     }
 }

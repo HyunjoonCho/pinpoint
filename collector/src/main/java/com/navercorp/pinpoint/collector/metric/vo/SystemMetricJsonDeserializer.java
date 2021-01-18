@@ -21,12 +21,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.navercorp.pinpoint.common.server.metric.bo.FieldBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
 import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricMetadata;
 import com.navercorp.pinpoint.common.server.metric.bo.TagBo;
 import com.navercorp.pinpoint.common.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -54,28 +52,26 @@ public class SystemMetricJsonDeserializer extends JsonDeserializer<SystemMetricB
         }
 
         String metricName = getTextNode(jsonNode, "name");
-        FieldBo fieldBo = deserializeField(metricName, jsonNode);
+
         List<TagBo> tagBos = deserializeTags(jsonNode);
         long timestamp = jsonNode.get("timestamp").asLong() * SEC_TO_MILLIS;
 
-        return new SystemMetricBo(metricName, fieldBo, tagBos, timestamp);
-    }
-
-    private FieldBo deserializeField(String metricName, JsonNode jsonNode) {
         JsonNode fieldsNode = jsonNode.get("fields");
         if (fieldsNode == null || !fieldsNode.isObject()) {
             return null;
         }
 
-        String fieldType = getTextNode(fieldsNode, "fieldType");
         String fieldName = getTextNode(fieldsNode, "fieldName");
+        String fieldType = getTextNode(fieldsNode, "fieldType");
 
         if (isInt(fieldType)) {
             systemMetricMetadata.put(metricName, fieldName, SystemMetricMetadata.MetricType.LongCounter);
-            return new FieldBo(fieldName, fieldsNode.get("fieldValue").asLong());
+            Long fieldValue =fieldsNode.get("fieldValue").asLong();
+            return new SystemMetricBo<>(metricName, fieldName, fieldValue, tagBos, timestamp);
         } else {
             systemMetricMetadata.put(metricName, fieldName, SystemMetricMetadata.MetricType.DoubleCounter);
-            return new FieldBo(fieldName, fieldsNode.get("fieldValue").asDouble());
+            Double fieldValue =fieldsNode.get("fieldValue").asDouble();
+            return new SystemMetricBo<>(metricName, fieldName, fieldValue, tagBos, timestamp);
         }
     }
 

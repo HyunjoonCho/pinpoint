@@ -52,8 +52,8 @@ public class MybatisTest {
 
     @Test
     public void testDao() {
-        PinotSystemMetricLongDao dao = new PinotSystemMetricLongDao(sqlSessionTemplate);
-        System.out.println(dao.getMetricNameList("hyunjoon.cho"));
+//        PinotSystemMetricLongDao dao = new PinotSystemMetricLongDao(sqlSessionTemplate);
+//        System.out.println(dao.getMetricNameList("hyunjoon.cho"));
     }
 
     @Test
