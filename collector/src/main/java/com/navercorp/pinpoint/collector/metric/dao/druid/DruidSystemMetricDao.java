@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.navercorp.pinpoint.collector.metric.dao.SystemMetricDao;
 import com.navercorp.pinpoint.collector.metric.serializer.druid.DruidSystemMetricSerializer;
 import com.navercorp.pinpoint.collector.metric.util.druid.DruidKafkaProducer;
-import com.navercorp.pinpoint.common.server.metric.bo.SystemMetricBo;
+import com.navercorp.pinpoint.common.server.metric.model.SystemMetricBo;
 
 import java.util.List;
 import java.util.Objects;
